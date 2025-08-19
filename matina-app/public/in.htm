@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Handwriting Reader with Form Filler</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        /* Custom cursor for the canvas */
+        .drawing-canvas {
+            cursor: crosshair;
+        }
+        /* Style for disabled button */
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        /* Add pointer cursor to labels to indicate they are clickable */
+        form label {
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body class="bg-slate-100 flex items-center justify-center min-h-screen py-8">
+
+    <div class="w-full max-w-5xl mx-auto p-4 sm:p-6 md:p-8">
+        <div class="bg-white rounded-2xl shadow-lg p-6 md:p-8">
+            <!-- Header -->
+            <div class="text-center mb-6">
+                <h1 class="text-3xl font-bold text-slate-800">Handwriting Reader</h1>
+                <p class="text-slate-500 mt-1">Click on a form label to write and fill it automatically.</p>
+            </div>
+
+            <!-- Form Filler Section -->
+            <div class="mt-8">
+                <h2 class="text-2xl font-bold text-slate-800 text-center mb-6">Personal Details Form (व्यक्तिगत विवरण)</h2>
+                <form id="sampleForm" class="space-y-6">
+                    <!-- Personal Details -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label for="fullName" class="block text-sm font-medium text-slate-600 mb-1 hover:text-blue-600 transition">Full Name (English)</label>
+                            <input type="text" id="fullName" name="fullName" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition bg-slate-50" readonly>
+                        </div>
+                        <div>
+                            <label for="dob" class="block text-sm font-medium text-slate-600 mb-1 hover:text-blue-600 transition">Date of Birth (B.S.)</label>
+                            <input type="text" id="dob" name="dob" placeholder="YYYY-MM-DD" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition bg-slate-50" readonly>
+                        </div>
+                         <div>
+                            <label for="fatherName" class="block text-sm font-medium text-slate-600 mb-1 hover:text-blue-600 transition">Father's Name</label>
+                            <input type="text" id="fatherName" name="fatherName" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition bg-slate-50" readonly>
+                        </div>
+                         <div>
+                            <label for="motherName" class="block text-sm font-medium text-slate-600 mb-1 hover:text-blue-600 transition">Mother's Name</label>
+                            <input type="text" id="motherName" name="motherName" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition bg-slate-50" readonly>
+                        </div>
+                    </div>
+
+                    <!-- Address Details -->
+                    <div class="border-t border-slate-200 pt-6">
+                         <h3 class="text-lg font-semibold text-slate-700 mb-4">Permanent Address (स्थायी ठेगाना)</h3>
+                         <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
+                            <div>
+                                <label for="province" class="block text-sm font-medium text-slate-600 mb-1">Province</label>
+                                <select id="province" name="province" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition bg-slate-50">
+                                    <option>Koshi</option>
+                                    <option>Madhesh</option>
+                                    <option>Bagmati</option>
+                                    <option>Gandaki</option>
+                                    <option>Lumbini</option>
+                                    <option>Karnali</option>
+                                    <option>Sudurpashchim</option>
+                                </select>
+                            </div>
+                             <div>
+                                <label for="district" class="block text-sm font-medium text-slate-600 mb-1 hover:text-blue-600 transition">District</label>
+                                <input type="text" id="district" name="district" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition bg-slate-50" readonly>
+                            </div>
+                             <div>
+                                <label for="municipality" class="block text-sm font-medium text-slate-600 mb-1 hover:text-blue-600 transition">Municipality/VDC</label>
+                                <input type="text" id="municipality" name="municipality" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition bg-slate-50" readonly>
+                            </div>
+                             <div>
+                                <label for="ward" class="block text-sm font-medium text-slate-600 mb-1 hover:text-blue-600 transition">Ward No.</label>
+                                <input type="number" id="ward" name="ward" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition bg-slate-50" readonly>
+                            </div>
+                         </div>
+                    </div>
+                     <!-- Citizenship Details -->
+                    <div class="border-t border-slate-200 pt-6">
+                         <h3 class="text-lg font-semibold text-slate-700 mb-4">Citizenship Details (नागरिकता विवरण)</h3>
+                         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                             <div>
+                                <label for="citizenshipNo" class="block text-sm font-medium text-slate-600 mb-1 hover:text-blue-600 transition">Citizenship No.</label>
+                                <input type="text" id="citizenshipNo" name="citizenshipNo" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition bg-slate-50" readonly>
+                            </div>
+                             <div>
+                                <label for="issuingDistrict" class="block text-sm font-medium text-slate-600 mb-1 hover:text-blue-600 transition">Issuing District</label>
+                                <input type="text" id="issuingDistrict" name="issuingDistrict" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition bg-slate-50" readonly>
+                            </div>
+                         </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Handwriting Modal -->
+    <div id="handwritingModal" class="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center p-4 hidden">
+        <div class="bg-white rounded-2xl shadow-xl w-full max-w-lg p-6">
+            <h2 id="modalTitle" class="text-xl font-bold text-slate-800 mb-4">Write here</h2>
+            <div class="aspect-video bg-slate-50 border-2 border-dashed border-slate-300 rounded-xl overflow-hidden mb-4">
+                <canvas id="modalCanvas" class="drawing-canvas w-full h-full"></canvas>
+            </div>
+            <div class="grid grid-cols-3 gap-4">
+                <button id="modalClearBtn" class="bg-slate-200 text-slate-700 font-semibold py-3 px-4 rounded-lg hover:bg-slate-300 transition-colors">Clear</button>
+                <button id="modalCancelBtn" class="bg-red-500 text-white font-semibold py-3 px-4 rounded-lg hover:bg-red-600 transition-colors">Cancel</button>
+                <button id="modalDoneBtn" class="bg-blue-600 text-white font-semibold py-3 px-4 rounded-lg hover:bg-blue-700 transition-colors">Done</button>
+            </div>
+        </div>
+    </div>
+
+
+    <script>
+        window.addEventListener('load', () => {
+            // --- Modal Elements and State ---
+            const modal = document.getElementById('handwritingModal');
+            const modalCanvas = document.getElementById('modalCanvas');
+            const modalCtx = modalCanvas.getContext('2d');
+            const modalTitle = document.getElementById('modalTitle');
+            const modalClearBtn = document.getElementById('modalClearBtn');
+            const modalCancelBtn = document.getElementById('modalCancelBtn');
+            const modalDoneBtn = document.getElementById('modalDoneBtn');
+            let currentTargetInput = null;
+
+            // --- Canvas Setup and Drawing Logic ---
+            let isDrawing = false;
+            let lastX = 0;
+            let lastY = 0;
+
+            // This function initializes a canvas for drawing.
+            const initializeCanvas = (canvas, context) => {
+                const resizeCanvas = () => {
+                    const parent = canvas.parentElement;
+                    canvas.width = parent.clientWidth;
+                    canvas.height = parent.clientHeight;
+                };
+                resizeCanvas();
+                window.addEventListener('resize', resizeCanvas); // Adjust on window resize
+
+                // Drawing event listeners
+                canvas.addEventListener('mousedown', startDrawing);
+                canvas.addEventListener('mousemove', (e) => draw(e, context));
+                canvas.addEventListener('mouseup', stopDrawing);
+                canvas.addEventListener('mouseleave', stopDrawing);
+                canvas.addEventListener('touchstart', startDrawing, { passive: false });
+                canvas.addEventListener('touchmove', (e) => draw(e, context), { passive: false });
+                canvas.addEventListener('touchend', stopDrawing);
+            };
+
+            function startDrawing(e) {
+                isDrawing = true;
+                [lastX, lastY] = getCanvasPos(e.target, e);
+            }
+
+            function draw(e, context) {
+                if (!isDrawing) return;
+                e.preventDefault();
+                const [currentX, currentY] = getCanvasPos(e.target, e);
+                context.beginPath();
+                context.moveTo(lastX, lastY);
+                context.lineTo(currentX, currentY);
+                context.strokeStyle = '#334155';
+                context.lineWidth = 3;
+                context.lineCap = 'round';
+                context.lineJoin = 'round';
+                context.stroke();
+                [lastX, lastY] = [currentX, currentY];
+            }
+
+            function stopDrawing() {
+                isDrawing = false;
+            }
+
+            function getCanvasPos(canvasEl, event) {
+                const rect = canvasEl.getBoundingClientRect();
+                let clientX = event.touches ? event.touches[0].clientX : event.clientX;
+                let clientY = event.touches ? event.touches[0].clientY : event.clientY;
+                const scaleX = canvasEl.width / rect.width;
+                const scaleY = canvasEl.height / rect.height;
+                return [(clientX - rect.left) * scaleX, (clientY - rect.top) * scaleY];
+            }
+
+            // Initialize the modal canvas once
+            initializeCanvas(modalCanvas, modalCtx);
+
+            // --- Modal Opening/Closing Logic ---
+            const openModal = (inputElement) => {
+                currentTargetInput = inputElement;
+                modalTitle.textContent = `Write content for: ${inputElement.previousElementSibling.textContent}`;
+                modal.classList.remove('hidden');
+                // Ensure canvas is correctly sized when opened
+                const parent = modalCanvas.parentElement;
+                modalCanvas.width = parent.clientWidth;
+                modalCanvas.height = parent.clientHeight;
+            };
+
+            const closeModal = () => {
+                modal.classList.add('hidden');
+                modalCtx.clearRect(0, 0, modalCanvas.width, modalCanvas.height); // Clear canvas on close
+                currentTargetInput = null;
+            };
+
+            // --- Form and Modal Button Event Listeners ---
+            
+            // Add listeners to all labels that have a 'for' attribute
+            document.querySelectorAll('form label[for]').forEach(label => {
+                const inputId = label.getAttribute('for');
+                const inputElement = document.getElementById(inputId);
+                // Only add listener to labels for readonly inputs
+                if (inputElement && inputElement.hasAttribute('readonly')) {
+                    label.addEventListener('click', (e) => {
+                        e.preventDefault();
+                        openModal(inputElement);
+                    });
+                }
+            });
+
+            modalClearBtn.addEventListener('click', () => {
+                modalCtx.clearRect(0, 0, modalCanvas.width, modalCanvas.height);
+            });
+
+            modalCancelBtn.addEventListener('click', closeModal);
+
+            modalDoneBtn.addEventListener('click', () => {
+                if (!currentTargetInput) return;
+
+                // Placeholder for recognition logic
+                const loadingIndicator = document.createElement('div');
+                loadingIndicator.textContent = 'Recognizing...';
+                modalDoneBtn.disabled = true;
+                modalDoneBtn.textContent = 'Processing...';
+
+                setTimeout(() => {
+                    // In a real app, you would get the canvas data, send to a server,
+                    // and get the recognized text back.
+                    const recognizedText = 'Recognized Text'; // Placeholder result
+                    currentTargetInput.value = recognizedText;
+                    modalDoneBtn.disabled = false;
+                    modalDoneBtn.textContent = 'Done';
+                    closeModal();
+                }, 1000);
+            });
+        });
+    </script>
+
+</body>
+</html>

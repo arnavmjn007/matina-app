@@ -1,0 +1,687 @@
+{
+  "users": [
+    {
+      "id": "1",
+      "name": "Arnav",
+      "lastName": "Maharjan",
+      "age": 21,
+      "bio": "I'm Arnav, I love to meet new people and explore new places.",
+      "love": 70,
+      "care": 100,
+      "cute": 100,
+      "interests": [
+        "Music",
+        "Jatra",
+        "Study",
+        "Travel",
+        "Photography"
+      ],
+      "wantsTo": [
+        "Travel",
+        "Marry",
+        "Meet new people",
+        "Learn new things"
+      ],
+      "location": "Kathmandu, Nepal",
+      "profileImages": [
+        "/images/Arnav.jpg",
+        "/images/Arn1.jpg",
+        "/images/Arn2.jpg",
+        ""
+      ],
+      "about": [
+        {
+          "text": "181 cm",
+          "icon": "📏"
+        },
+        {
+          "text": "Active",
+          "icon": "🏃"
+        },
+        {
+          "text": "Adventurous",
+          "icon": "🌍"
+        },
+        {
+          "text": "Creative",
+          "icon": "🎨"
+        },
+        {
+          "text": "Friendly",
+          "icon": "😊"
+        }
+      ],
+      "discoverySettings": {
+        "interestedIn": "women",
+        "ageRange": [
+          21,
+          30
+        ],
+        "distance": 30
+      },
+      "accountSettings": {
+        "notifications": true,
+        "profileVisible": true
+      },
+      "basics": {
+        "height": "190 cm",
+        "exercise": "Active",
+        "education": "Undergraduate",
+        "drinking": "Frequently",
+        "smoking": "Regularly",
+        "lookingFor": "Relationship",
+        "kids": "Have & want more",
+        "starSign": "Pisces",
+        "politics": "Liberal",
+        "religion": "Buddhist"
+      },
+      "personality": {
+        "q1_care": "Listen and support",
+        "q2_love": "A spontaneous adventure",
+        "q3_cute": "Goofy and playful"
+      }
+    },
+    {
+      "id": "2",
+      "name": "Sabina",
+      "lastName": "Shrestha",
+      "age": 23,
+      "bio": "A foodie and a book lover. Looking for someone to share adventures with.",
+      "love": 80,
+      "care": 90,
+      "cute": 75,
+      "interests": [
+        "Reading",
+        "Cooking",
+        "Hiking",
+        "Movies"
+      ],
+      "wantsTo": [
+        "Find a partner",
+        "Try new cuisines",
+        "Adopt a pet"
+      ],
+      "location": "Patan, Nepal",
+      "profileImages": [
+        "/images/sunny1.jpg",
+        "/images/sunny2.jpg",
+        "/images/sunny3.jpg",
+        "/images/sunny4.jpg"
+      ],
+      "about": [
+        {
+          "text": "165 cm",
+          "icon": "📏"
+        },
+        {
+          "text": "Creative",
+          "icon": "🎨"
+        },
+        {
+          "text": "Nature Lover",
+          "icon": "🌿"
+        },
+        {
+          "text": "Foodie",
+          "icon": "🍕"
+        },
+        {
+          "text": "Bookworm",
+          "icon": "📚"
+        }
+      ],
+      "discoverySettings": {
+        "interestedIn": "men",
+        "ageRange": [
+          22,
+          30
+        ],
+        "distance": 40
+      },
+      "accountSettings": {
+        "notifications": true,
+        "profileVisible": true
+      }
+    },
+    {
+      "id": "3",
+      "name": "Sajan",
+      "lastName": "Lama",
+      "age": 25,
+      "bio": "Fitness freak who loves hiking and traveling to new places.",
+      "love": 85,
+      "care": 70,
+      "cute": 65,
+      "interests": [
+        "Gym",
+        "Trekking",
+        "Football",
+        "Travel"
+      ],
+      "wantsTo": [
+        "Stay fit",
+        "Travel the world",
+        "Meet like-minded people"
+      ],
+      "location": "Bhaktapur, Nepal",
+      "profileImages": [
+        "/images/sajan1.jpg",
+        "/images/sajan2.jpg",
+        "/images/sajan3.jpg",
+        ""
+      ],
+      "about": [
+        {
+          "text": "178 cm",
+          "icon": "📏"
+        },
+        {
+          "text": "Energetic",
+          "icon": "⚡"
+        },
+        {
+          "text": "Friendly",
+          "icon": "😊"
+        }
+      ],
+      "discoverySettings": {
+        "interestedIn": "women",
+        "ageRange": [
+          20,
+          28
+        ],
+        "distance": 20
+      },
+      "accountSettings": {
+        "notifications": true,
+        "profileVisible": true
+      }
+    },
+    {
+      "id": "4",
+      "name": "Nikita",
+      "lastName": "Khadka",
+      "age": 22,
+      "bio": "An art lover and aspiring painter who finds beauty in small things.",
+      "love": 90,
+      "care": 80,
+      "cute": 95,
+      "interests": [
+        "Painting",
+        "Music",
+        "Coffee",
+        "Travel"
+      ],
+      "wantsTo": [
+        "Exhibit art",
+        "Find love",
+        "Explore cafes"
+      ],
+      "location": "Kathmandu, Nepal",
+      "profileImages": [
+        "/images/nikita1.jpg",
+        "/images/nikita2.jpg",
+        "",
+        ""
+      ],
+      "about": [
+        {
+          "text": "160 cm",
+          "icon": "📏"
+        },
+        {
+          "text": "Creative",
+          "icon": "🎨"
+        },
+        {
+          "text": "Romantic",
+          "icon": "💖"
+        }
+      ],
+      "discoverySettings": {
+        "interestedIn": "men",
+        "ageRange": [
+          22,
+          28
+        ],
+        "distance": 25
+      },
+      "accountSettings": {
+        "notifications": false,
+        "profileVisible": true
+      }
+    },
+    {
+      "id": "5",
+      "name": "Ramesh",
+      "lastName": "Thapa",
+      "age": 27,
+      "bio": "Engineer by profession, traveler by heart.",
+      "love": 75,
+      "care": 85,
+      "cute": 60,
+      "interests": [
+        "Technology",
+        "Travel",
+        "Movies",
+        "Football"
+      ],
+      "wantsTo": [
+        "Settle abroad",
+        "Meet soulmate",
+        "Learn new cultures"
+      ],
+      "location": "Pokhara, Nepal",
+      "profileImages": [
+        "/images/ramesh1.jpg",
+        "/images/ramesh2.jpg",
+        "/images/ramesh3.jpg",
+        ""
+      ],
+      "about": [
+        {
+          "text": "182 cm",
+          "icon": "📏"
+        },
+        {
+          "text": "Adventurous",
+          "icon": "🌍"
+        },
+        {
+          "text": "Smart",
+          "icon": "🧠"
+        }
+      ],
+      "discoverySettings": {
+        "interestedIn": "women",
+        "ageRange": [
+          23,
+          30
+        ],
+        "distance": 50
+      },
+      "accountSettings": {
+        "notifications": true,
+        "profileVisible": true
+      }
+    },
+    {
+      "id": "6",
+      "name": "Sneha",
+      "lastName": "Bista",
+      "age": 24,
+      "bio": "Animal lover and yoga enthusiast.",
+      "love": 95,
+      "care": 100,
+      "cute": 85,
+      "interests": [
+        "Yoga",
+        "Cooking",
+        "Dogs",
+        "Movies"
+      ],
+      "wantsTo": [
+        "Adopt dogs",
+        "Travel",
+        "Meet partner"
+      ],
+      "location": "Lalitpur, Nepal",
+      "profileImages": [
+        "/images/sneha1.jpg",
+        "/images/sneha2.jpg",
+        "",
+        ""
+      ],
+      "about": [
+        {
+          "text": "162 cm",
+          "icon": "📏"
+        },
+        {
+          "text": "Calm",
+          "icon": "🧘"
+        },
+        {
+          "text": "Loving",
+          "icon": "❤️"
+        }
+      ],
+      "discoverySettings": {
+        "interestedIn": "men",
+        "ageRange": [
+          23,
+          32
+        ],
+        "distance": 35
+      },
+      "accountSettings": {
+        "notifications": true,
+        "profileVisible": true
+      }
+    },
+    {
+      "id": "7",
+      "name": "Bikash",
+      "lastName": "Gurung",
+      "age": 26,
+      "bio": "Aspiring musician who loves to perform live.",
+      "love": 88,
+      "care": 70,
+      "cute": 72,
+      "interests": [
+        "Guitar",
+        "Singing",
+        "Travel",
+        "Movies"
+      ],
+      "wantsTo": [
+        "Perform globally",
+        "Find love",
+        "Make friends"
+      ],
+      "location": "Chitwan, Nepal",
+      "profileImages": [
+        "/images/bikash1.jpg",
+        "/images/bikash2.jpg",
+        "",
+        ""
+      ],
+      "about": [
+        {
+          "text": "176 cm",
+          "icon": "📏"
+        },
+        {
+          "text": "Musical",
+          "icon": "🎶"
+        },
+        {
+          "text": "Funny",
+          "icon": "😂"
+        }
+      ],
+      "discoverySettings": {
+        "interestedIn": "women",
+        "ageRange": [
+          21,
+          28
+        ],
+        "distance": 40
+      },
+      "accountSettings": {
+        "notifications": true,
+        "profileVisible": true
+      }
+    },
+    {
+      "id": "8",
+      "name": "Pratima",
+      "lastName": "Maharjan",
+      "age": 25,
+      "bio": "Food blogger and travel enthusiast.",
+      "love": 85,
+      "care": 75,
+      "cute": 90,
+      "interests": [
+        "Cooking",
+        "Travel",
+        "Photography",
+        "Blogging"
+      ],
+      "wantsTo": [
+        "Travel globally",
+        "Find soulmate",
+        "Grow career"
+      ],
+      "location": "Bhaktapur, Nepal",
+      "profileImages": [
+        "/images/pratima1.jpg",
+        "/images/pratima2.jpg",
+        "",
+        ""
+      ],
+      "about": [
+        {
+          "text": "164 cm",
+          "icon": "📏"
+        },
+        {
+          "text": "Foodie",
+          "icon": "🍜"
+        },
+        {
+          "text": "Adventurous",
+          "icon": "🌍"
+        }
+      ],
+      "discoverySettings": {
+        "interestedIn": "men",
+        "ageRange": [
+          24,
+          32
+        ],
+        "distance": 20
+      },
+      "accountSettings": {
+        "notifications": false,
+        "profileVisible": true
+      }
+    },
+    {
+      "id": "9",
+      "name": "Kiran",
+      "lastName": "Shahi",
+      "age": 29,
+      "bio": "Tech geek and startup dreamer.",
+      "love": 70,
+      "care": 80,
+      "cute": 55,
+      "interests": [
+        "Coding",
+        "Gaming",
+        "Books",
+        "Travel"
+      ],
+      "wantsTo": [
+        "Build startup",
+        "Find supportive partner",
+        "Learn constantly"
+      ],
+      "location": "Kathmandu, Nepal",
+      "profileImages": [
+        "/images/kiran1.jpg",
+        "/images/kiran2.jpg",
+        "",
+        ""
+      ],
+      "about": [
+        {
+          "text": "180 cm",
+          "icon": "📏"
+        },
+        {
+          "text": "Smart",
+          "icon": "🧠"
+        },
+        {
+          "text": "Introvert",
+          "icon": "🤐"
+        }
+      ],
+      "discoverySettings": {
+        "interestedIn": "women",
+        "ageRange": [
+          23,
+          30
+        ],
+        "distance": 50
+      },
+      "accountSettings": {
+        "notifications": true,
+        "profileVisible": true
+      }
+    },
+    {
+      "id": "10",
+      "name": "Sujata",
+      "lastName": "Shrestha",
+      "age": 28,
+      "bio": "Adventure seeker and mountain lover.",
+      "love": 92,
+      "care": 85,
+      "cute": 70,
+      "interests": [
+        "Hiking",
+        "Mountains",
+        "Photography",
+        "Dance"
+      ],
+      "wantsTo": [
+        "Climb peaks",
+        "Find love",
+        "Travel together"
+      ],
+      "location": "Pokhara, Nepal",
+      "profileImages": [
+        "/images/sujata1.jpg",
+        "/images/sujata2.jpg",
+        "",
+        ""
+      ],
+      "about": [
+        {
+          "text": "167 cm",
+          "icon": "📏"
+        },
+        {
+          "text": "Adventurous",
+          "icon": "🌍"
+        },
+        {
+          "text": "Brave",
+          "icon": "🦁"
+        }
+      ],
+      "discoverySettings": {
+        "interestedIn": "men",
+        "ageRange": [
+          25,
+          35
+        ],
+        "distance": 60
+      },
+      "accountSettings": {
+        "notifications": true,
+        "profileVisible": true
+      }
+    },
+    {
+      "id": "11",
+      "name": "Rohit",
+      "lastName": "KC",
+      "age": 24,
+      "bio": "Gamer and coffee addict who also loves coding.",
+      "love": 65,
+      "care": 75,
+      "cute": 68,
+      "interests": [
+        "Gaming",
+        "Coffee",
+        "Coding",
+        "Anime"
+      ],
+      "wantsTo": [
+        "Meet gamer partner",
+        "Travel Japan",
+        "Build career"
+      ],
+      "location": "Kathmandu, Nepal",
+      "profileImages": [
+        "/images/rohit1.jpg",
+        "/images/rohit2.jpg",
+        "",
+        ""
+      ],
+      "about": [
+        {
+          "text": "174 cm",
+          "icon": "📏"
+        },
+        {
+          "text": "Geeky",
+          "icon": "🤓"
+        },
+        {
+          "text": "Playful",
+          "icon": "🎮"
+        }
+      ],
+      "discoverySettings": {
+        "interestedIn": "women",
+        "ageRange": [
+          20,
+          27
+        ],
+        "distance": 30
+      },
+      "accountSettings": {
+        "notifications": true,
+        "profileVisible": true
+      }
+    },
+    {
+      "id": "12",
+      "name": "Anjali",
+      "lastName": "Rai",
+      "age": 26,
+      "bio": "A dancer and fitness lover with a free spirit.",
+      "love": 90,
+      "care": 95,
+      "cute": 80,
+      "interests": [
+        "Dance",
+        "Fitness",
+        "Travel",
+        "Movies"
+      ],
+      "wantsTo": [
+        "Find love",
+        "Dance more",
+        "Live healthy"
+      ],
+      "location": "Itahari, Nepal",
+      "profileImages": [
+        "/images/anjali1.jpg",
+        "/images/anjali2.jpg",
+        "",
+        ""
+      ],
+      "about": [
+        {
+          "text": "166 cm",
+          "icon": "📏"
+        },
+        {
+          "text": "Energetic",
+          "icon": "⚡"
+        },
+        {
+          "text": "Charming",
+          "icon": "✨"
+        }
+      ],
+      "discoverySettings": {
+        "interestedIn": "men",
+        "ageRange": [
+          25,
+          32
+        ],
+        "distance": 40
+      },
+      "accountSettings": {
+        "notifications": true,
+        "profileVisible": true
+      }
+    }
+  ]
+}
