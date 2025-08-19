@@ -2,12 +2,15 @@ import { useEffect, useState } from 'react';
 import { Modal, Input, Slider, Radio, Button } from 'antd';
 
 const BasicsEditModal = ({ isOpen, onCancel, item, onSave }) => {
+    // Manages the value *inside* the modal temporarily
     const [currentValue, setCurrentValue] = useState(item?.value);
 
+    // This effect resets the modal's internal state whenever a new item is passed in
     useEffect(() => {
         setCurrentValue(item?.value);
     }, [item]);
 
+    // Renders the correct input type based on the item's properties
     const renderInput = () => {
         if (!item) return null;
         switch (item.type) {
@@ -30,9 +33,10 @@ const BasicsEditModal = ({ isOpen, onCancel, item, onSave }) => {
         }
     };
 
+    // When the user clicks save, this sends the data back to the parent component
     const handleSave = () => {
-        onSave(item.key, currentValue);
-        onCancel();
+        onSave(item.key, currentValue); // Calls the onSave function from props
+        onCancel(); // Closes the modal
     };
 
     return (

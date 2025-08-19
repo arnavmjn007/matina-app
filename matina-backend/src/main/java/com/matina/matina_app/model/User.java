@@ -1,40 +1,44 @@
 package com.matina.matina_app.model;
 
 import jakarta.persistence.*;
-import lombok.Data;
-import java.util.Date;
+import lombok.Data; // Import Lombok's @Data
+import java.util.List;
 
-@Data // Lombok annotation to generate getters, setters, etc.
+@Data // Creates all getters, setters, toString, etc.
 @Entity
-@Table(name = "users") // This must match your table name in MySQL
+@Table(name = "users")
 public class User {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Column(unique = true, nullable = false)
     private String email;
+
+    @Column(nullable = false)
     private String password;
+
     private String firstName;
     private String lastName;
-    private Date birthday;
-    private String gender;
-    private String address;
     private String phone;
-    
-    @Column(columnDefinition = "TEXT")
-    private String bio;
-    
-    // For simplicity, we'll store lists as comma-separated strings
-    private String interests; 
-    private String wantsTo;
 
-    private String profileImageUrl;
+    @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
+    private UserProfile userProfile;
 
-    // These will be calculated
-    private int love;
-    private int care;
-    private int cute;
+    @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
+    private UserBasics userBasics;
 
-    // You can add more fields for basics and personality if needed
+    @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
+    private UserPersonality userPersonality;
+
+    @ElementCollection(fetch = FetchType.LAZY)
+    @CollectionTable(name = "user_interests", joinColumns = @JoinColumn(name = "user_id"))
+    @Column(name = "interest")
+    private List<String> interests;
+
+    @ElementCollection(fetch = FetchType.LAZY)
+    @CollectionTable(name = "user_wants_to", joinColumns = @JoinColumn(name = "user_id"))
+    @Column(name = "wants")
+    private List<String> wantsTo;
 }

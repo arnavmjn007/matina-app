@@ -1,4 +1,5 @@
 import { DatePicker } from 'antd';
+import dayjs from 'dayjs'; // It's good practice to handle date objects with dayjs
 
 const BirthdayStep = ({ data, setFormData }) => (
     <div>
@@ -6,9 +7,16 @@ const BirthdayStep = ({ data, setFormData }) => (
         <DatePicker
             size="large"
             style={{ width: '100%' }}
-            value={data.birthday}
-            onChange={(date) => setFormData(prev => ({ ...prev, birthday: date }))}
+            // Ensure the value is a dayjs object if it exists, otherwise null
+            value={data.userProfile.birthday ? dayjs(data.userProfile.birthday) : null}
+            onChange={(date) =>
+                setFormData(prev => ({
+                    ...prev,
+                    userProfile: { ...prev.userProfile, birthday: date }
+                }))
+            }
         />
     </div>
 );
+
 export default BirthdayStep;

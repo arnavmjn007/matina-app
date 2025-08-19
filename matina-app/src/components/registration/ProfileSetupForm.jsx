@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Steps, Button, message } from 'antd';
-import { STEPS, getBasicsItems } from '../../config/registrationConstants';
+import { STEPS, getBasicsItems, INITIAL_FORM_DATA } from '../../config/registrationConstants';
 import { calculatePersonalityTraits } from '../../utils/profileUtils';
 import { createUser } from '../../services/userService';
 import BasicsEditModal from '../common/BasicsEditModal';
@@ -15,93 +15,104 @@ import BasicsStep from './BasicsStep';
 import PersonalityStep from './PersonalityStep';
 import AboutStep from './AboutStep';
 
-const ProfileSetupForm = ({ navigateTo }) => {
+const ProfileSetupForm = ({ initialCredentials, onFinish }) => {
     const [current, setCurrent] = useState(0);
     const [isModalVisible, setIsModalVisible] = useState(false);
     const [editingItem, setEditingItem] = useState(null);
+
+    // 1. Initialize state with the new nested structure from your constants file
     const [formData, setFormData] = useState({
-        firstName: '', lastName: '', birthday: null, gender: '', photos: [], address: '', phone: '',
-        interestedIn: 'Women', interests: [], wantsTo: [], bio: '',
-        love: 50, care: 50, cute: 50,
-        basics: {
-            height: "170 cm", exercise: "Sometimes", education: "Undergraduate", drinking: "Socially",
-            smoking: "Never", lookingFor: "Relationship", kids: "Don't want", starSign: "Pisces", politics: "Apolitical", religion: "Buddhist"
-        },
-        personality: { q1_care: null, q2_love: null, q3_cute: null }
+        ...INITIAL_FORM_DATA,
+        ...initialCredentials // Merge email/password from the first step
     });
 
+    // This effect now targets the nested personality object
     useEffect(() => {
-        const newScores = calculatePersonalityTraits(formData.personality);
-        setFormData(prev => ({ ...prev, ...newScores }));
-    }, [formData.personality]);
+        const newScores = calculatePersonalityTraits(formData.userPersonality);
+        // Avoid infinite loops by checking if scores have changed
+        if (newScores.care !== formData.userPersonality.care) {
+            setFormData(prev => ({
+                ...prev,
+                userPersonality: { ...prev.userPersonality, ...newScores }
+            }));
+        }
+    }, [formData.userPersonality]);
 
     const handleNext = () => setCurrent(current + 1);
     const handlePrev = () => setCurrent(current - 1);
 
-    // Generic handler for most form inputs
-    // const handleFormChange = (key, value) => {
-    //     setFormData(prev => ({ ...prev, [key]: value }));
-    // };
-
-    const handleBasicsChange = (key, value) => setFormData({ ...formData, basics: { ...formData.basics, [key]: value } });
-    const handlePersonalityChange = (key, value) => setFormData({ ...formData, personality: { ...formData.personality, [key]: value } });
+    // 2. We no longer need multiple handler functions like handleBasicsChange!
 
     const openEditModal = (item) => {
         setEditingItem(item);
         setIsModalVisible(true);
     };
 
+    // The save handler for the modal now cleanly updates the nested 'userBasics' state
+    const handleSaveBasics = (key, value) => {
+        setFormData(prev => ({
+            ...prev,
+            userBasics: { ...prev.userBasics, [key]: value }
+        }));
+    };
+
     const handleFinish = async () => {
         try {
-            // 2. Uncomment this block
-            const imageFile = formData.photos[0]?.originFileObj;
+            const { photos, ...userPayload } = formData;
+            const imageFile = photos[0]?.originFileObj;
+
             if (!imageFile) {
                 return message.error("Please upload at least one photo.");
             }
 
-            const userPayload = { ...formData };
-            delete userPayload.photos; // We send the file separately
-
-            // This is where you call the function to send data to the backend
             await createUser(userPayload, imageFile);
-
             message.success('Registration Complete!');
-            navigateTo('login'); // Navigate to login after success
+            onFinish(); // Use the callback prop to navigate
         } catch (error) {
-            message.error('Registration failed. Please try again.');
+            console.error("Registration Error:", error);
+            message.error(error.response?.data?.message || 'Registration failed. Please try again.');
         }
     };
 
-    const basicsItems = getBasicsItems(formData.basics);
-
-    const stepContent = [
-        <NameStep data={formData} setFormData={setFormData} />,
-        <BirthdayStep data={formData} setFormData={setFormData} />,
-        <GenderStep data={formData} setFormData={setFormData} />,
-        <ContactStep data={formData} setFormData={setFormData} />,
-        <PhotosStep setFormData={setFormData} />,
-        <BasicsStep basicsItems={basicsItems} openEditModal={openEditModal} />,
-        <PersonalityStep data={formData.personality} handlePersonalityChange={handlePersonalityChange} />,
-        <AboutStep data={formData} setFormData={setFormData} />
-    ];
+    // 3. Render steps consistently with a switch statement for better readability
+    const renderCurrentStep = () => {
+        // All components receive the same props for consistency
+        const props = { data: formData, setFormData };
+        switch (current) {
+            case 0: return <NameStep {...props} />;
+            case 1: return <BirthdayStep {...props} />;
+            case 2: return <GenderStep {...props} />;
+            case 3: return <ContactStep {...props} />;
+            case 4: return <PhotosStep {...props} />;
+            case 5: return <BasicsStep basicsItems={getBasicsItems(formData.userBasics)} openEditModal={openEditModal} />;
+            case 6: return <PersonalityStep {...props} />;
+            case 7: return <AboutStep {...props} />;
+            default: return null;
+        }
+    }
 
     return (
         <div className="bg-white rounded-2xl shadow-xl flex flex-col md:flex-row w-full max-w-5xl overflow-hidden min-h-[70vh]">
-            <div className="w-full md:w-1/3 p-8 bg-gray-50 border-b md:border-b-0 md:border-r border-gray-200">
-                <h2 className="text-2xl font-bold mb-6 text-pink-500">Create Account</h2>
+            <div className="w-full md:w-1/3 p-8 bg-gray-50 border-r">
+                <h2 className="text-2xl font-bold mb-6 text-pink-500">Create Profile</h2>
                 <Steps direction="vertical" current={current} items={STEPS} />
             </div>
             <div className="w-full md:w-2/3 p-8 md:p-12 flex flex-col justify-between">
-                <div>{stepContent[current]}</div>
+                <div>{renderCurrentStep()}</div>
                 <div className="mt-8 flex justify-between">
                     {current > 0 && <Button size="large" onClick={handlePrev}>Back</Button>}
                     {current < STEPS.length - 1
-                        ? <Button type="primary" size="large" onClick={handleNext} className="bg-pink-500 hover:bg-pink-600 border-pink-500">Next</Button>
-                        : <Button type="primary" size="large" className="bg-green-500 hover:bg-green-600 border-green-500" onClick={handleFinish}>Finish</Button>
+                        ? <Button type="primary" size="large" onClick={handleNext} className="bg-pink-500">Next</Button>
+                        : <Button type="primary" size="large" className="bg-green-500" onClick={handleFinish}>Finish</Button>
                     }
                 </div>
             </div>
-            <BasicsEditModal isOpen={isModalVisible} onCancel={() => setIsModalVisible(false)} item={editingItem} onSave={handleBasicsChange} />
+            <BasicsEditModal
+                isOpen={isModalVisible}
+                onCancel={() => setIsModalVisible(false)}
+                item={editingItem}
+                onSave={handleSaveBasics}
+            />
         </div>
     );
 };
