@@ -1,85 +1,49 @@
-import { useState, useEffect } from 'react';
-import FrontendLayout from './components/templates/frontend/FrontendLayout';
-import { getAllUsers } from './services/userService';
-
-// Import all page components
-import DiscoveryPage from './pages/Frontend/DiscoveryPage';
-import ChatsPage from './pages/Frontend/ChatsPage';
-import LikedPage from './pages/Frontend/LikedPage';
-import SettingsPage from './pages/Frontend/SettingsPage';
-import PremiumPage from './pages/Frontend/PremiumPage';
+import React, { useState, useEffect } from 'react';
 import Login from './pages/Backend/Login';
 import Register from './pages/Backend/Register';
+import Dashboard from './pages/Backend/Dashboard';
 
 function App() {
-  const [currentPage, setCurrentPage] = useState('login');
-  const [activeUser, setActiveUser] = useState(null);
-  const [allUsers, setAllUsers] = useState([]);
+    // 'view' controls which page to show: 'login', 'register', or 'dashboard'
+    const [view, setView] = useState('login');
+    const [isLoggedIn, setIsLoggedIn] = useState(false);
 
-  // Fetch all users from the db.json file when the app starts
-  useEffect(() => {
-    const fetchUsers = async () => {
-      const users = await getAllUsers();
-      setAllUsers(users);
+    // When the app first loads, check if the user is already logged in from a previous session.
+    useEffect(() => {
+        const user = localStorage.getItem('user');
+        if (user) {
+            setIsLoggedIn(true);
+        }
+    }, []);
+
+    // Function to handle logging out the user
+    const handleLogout = () => {
+        localStorage.removeItem('user');
+        setIsLoggedIn(false);
+        setView('login'); // Redirect to login screen
     };
-    fetchUsers();
-  }, []);
 
-  const navigateTo = (page) => {
-    setCurrentPage(page);
-  };
+    // Main navigation function passed to child components
+    const navigateTo = (page) => {
+        if (page === 'dashboard') {
+            setIsLoggedIn(true);
+        }
+        setView(page);
+    };
 
-  // This function now finds the user in the database
-  const handleLogin = (email, password) => {
-    const user = allUsers.find(u => u.email === email && u.password === password);
-    if (user) {
-      setActiveUser(user);
-      navigateTo('discovery');
-      return true;
+    // If the user is logged in, show the main dashboard.
+    if (isLoggedIn) {
+        return <Dashboard onLogout={handleLogout} />;
     }
-    return false;
-  };
 
-  const handleLogout = () => {
-    setActiveUser(null);
-    navigateTo('login');
-  };
-
-  if (!activeUser) {
-    switch (currentPage) {
-      case 'register':
-        return <Register navigateTo={navigateTo} />;
-      case 'login':
-      default:
-        return <Login navigateTo={navigateTo} onLoginSuccess={handleLogin} />;
+    // If not logged in, show either the login or register page.
+    switch (view) {
+        case 'register':
+            return <Register navigateTo={navigateTo} />;
+        case 'login':
+        default:
+            return <Login navigateTo={navigateTo} />;
     }
-  }
-
-  const renderMainAppPage = () => {
-    switch (currentPage) {
-      case 'discovery':
-        return <DiscoveryPage navigateTo={navigateTo} activeUser={activeUser} />;
-      case 'chats':
-        return <ChatsPage navigateTo={navigateTo} />;
-      case 'liked':
-        return <LikedPage navigateTo={navigateTo} />;
-      case 'settings':
-        return <SettingsPage navigateTo={navigateTo} activeUser={activeUser} />;
-      case 'premium':
-        return <PremiumPage navigateTo={navigateTo} />;
-      case 'logout':
-        handleLogout();
-        return null;
-      default:
-        return <DiscoveryPage navigateTo={navigateTo} activeUser={activeUser} />;
-    }
-  };
-
-  return (
-    <FrontendLayout navigateTo={navigateTo} currentPage={currentPage} activeUser={activeUser}>
-      {renderMainAppPage()}
-    </FrontendLayout>
-  );
 }
 
 export default App;

@@ -1,19 +1,29 @@
 import React, { useState } from 'react';
 import { Input, Button, message } from 'antd';
-import 'antd/dist/reset.css';
+import { loginUser } from '../../services/userService';
 
-function Login({ navigateTo, onLoginSuccess }) {
+function Login({ navigateTo }) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
 
-  const handleLoginSubmit = (e) => {
+  const handleLoginSubmit = async (e) => {
     e.preventDefault();
-    // onLoginSuccess now returns true or false
-    const success = onLoginSuccess(email, password);
-    if (success) {
+    setLoading(true);
+    setError('');
+
+    try {
+      const userData = await loginUser(email, password);
       message.success('Login successful!');
-    } else {
-      message.error('Invalid email or password.');
+      localStorage.setItem('user', JSON.stringify(userData));
+      navigateTo('dashboard');
+    } catch (apiError) {
+      const errorMessage = apiError.response?.data || 'Invalid email or password.';
+      setError(errorMessage);
+      message.error(errorMessage);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -41,22 +51,32 @@ function Login({ navigateTo, onLoginSuccess }) {
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
+                required
               />
               <Input.Password
                 size="large"
                 placeholder="Password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
+                required
               />
-              <Button type="primary" htmlType="submit" size="large" block className="bg-pink-500 hover:bg-pink-600 border-pink-500">
-                Sign In
+              {error && <p className="text-red-500 text-center">{error}</p>}
+              <Button
+                type="primary"
+                htmlType="submit"
+                size="large"
+                block
+                loading={loading}
+                className="bg-pink-500 hover:bg-pink-600 border-pink-500"
+              >
+                {loading ? 'Signing In...' : 'Sign In'}
               </Button>
             </form>
           </div>
           <div className="mt-8 text-center text-sm">
             <span className="font-medium text-gray-600">
               Don't have an account?{' '}
-              <button onClick={() => navigateTo('register')} className="font-bold text-pink-600 hover:text-pink-500 focus:outline-none">
+              <button onClick={() => navigateTo('register')} className="font-bold text-pink-600 hover:text-pink-500">
                 Signup
               </button>
             </span>

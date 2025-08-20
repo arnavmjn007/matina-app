@@ -36,12 +36,14 @@ export const INITIAL_FORM_DATA = {
     password: '',
     firstName: '',
     lastName: '',
-    phone: '',
+
 
     // Nested UserProfile object
     userProfile: {
         birthday: null,
         gender: '',
+        phone: '',    
+        address: '',
         bio: '',
         profileImageUrl: '',
     },
