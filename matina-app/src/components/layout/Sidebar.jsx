@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Heart, MessageSquare, Compass, Settings, LogOut, Sparkle, Star} from 'lucide-react';
+import { Heart, MessageSquare, Compass, Settings, LogOut, Sparkle, Star } from 'lucide-react';
 import { Modal, Button } from 'antd';
 
 const navItems = [
@@ -18,7 +18,7 @@ const PremiumModal = ({ isOpen, closeModal }) => (
             </div>
             {/* ... other modal content ... */}
             <Button type="primary" size="large" block style={{ backgroundColor: '#FBBF24', color: '#1F2937' }}>
-                Upgrade Now - $9.99/mo
+                Upgrade Now - Rs. 999/month
             </Button>
         </div>
     </Modal>
