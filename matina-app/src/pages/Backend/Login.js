@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Input, Button, message } from 'antd';
 import { loginUser } from '../../services/userService';
 
-function Login({ navigateTo }) {
+const Login = ({ navigateTo, setIsLoggedIn }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
@@ -14,10 +14,17 @@ function Login({ navigateTo }) {
     setError('');
 
     try {
-      const userData = await loginUser(email, password);
+      // The backend now returns an object with a 'token' and a 'user' property
+      const { token, user } = await loginUser(email, password);
       message.success('Login successful!');
-      localStorage.setItem('user', JSON.stringify(userData));
-      navigateTo('dashboard');
+
+      // Store both the token and the user object in localStorage
+      localStorage.setItem('token', token);
+      localStorage.setItem('user', JSON.stringify(user));
+
+      // Update the main App state to show the dashboard
+      setIsLoggedIn(true);
+
     } catch (apiError) {
       const errorMessage = apiError.response?.data || 'Invalid email or password.';
       setError(errorMessage);
@@ -85,6 +92,6 @@ function Login({ navigateTo }) {
       </div>
     </div>
   );
-}
+};
 
 export default Login;

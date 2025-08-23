@@ -55,7 +55,7 @@ const DiscoveryPage = ({ user: activeUser }) => {
     }
 
     if (currentIndex >= users.length) {
-        return <div className="text-center font-semibold text-gray-500">No more profiles to show. Check back later!</div>;
+        return <div className="text-center font-semibold text-black">No more profiles to show. Check back later!</div>;
     }
 
     const currentUser = users[currentIndex];
