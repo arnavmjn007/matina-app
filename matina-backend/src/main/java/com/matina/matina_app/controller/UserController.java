@@ -50,14 +50,12 @@ public class UserController {
     @PostMapping("/login")
     public ResponseEntity<?> loginUser(@RequestBody LoginRequest loginRequest) {
         try {
-            User user = userService.loginUser(loginRequest.getEmail(), loginRequest.getPassword());
-            return ResponseEntity.ok(user);
+            // The service now returns a LoginResponse object (token + user)
+            return ResponseEntity.ok(userService.loginUser(loginRequest.getEmail(), loginRequest.getPassword()));
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(e.getMessage());
         }
     }
-
-    // --- NEW ENDPOINTS FOR DISCOVERY, LIKES, AND MATCHES ---
 
     @GetMapping("/discover/{userId}")
     public ResponseEntity<List<User>> getDiscoveryUsers(@PathVariable Long userId) {
@@ -74,9 +72,9 @@ public class UserController {
         return ResponseEntity.ok(userService.getMatches(userId));
     }
 
-
     @Data
     public static class LoginRequest {
+
         private String email;
         private String password;
     }

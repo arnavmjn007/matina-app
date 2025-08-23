@@ -3,32 +3,34 @@ package com.matina.matina_app.services;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.matina.matina_app.dto.LoginResponse;
 import com.matina.matina_app.model.Interaction;
 import com.matina.matina_app.model.User;
 import com.matina.matina_app.repository.InteractionRepository;
 import com.matina.matina_app.repository.UserRepository;
 
+import lombok.RequiredArgsConstructor;
+
 @Service
+@RequiredArgsConstructor // Lombok constructor for dependency injection
 public class UserService {
 
-    @Autowired
-    private UserRepository userRepository;
-
-    @Autowired
-    private InteractionRepository interactionRepository;
-
-    @Autowired
-    private ImageUploadService imageUploadService;
-
-    @Autowired
-    private PasswordEncoder passwordEncoder;
+    private final UserRepository userRepository;
+    private final InteractionRepository interactionRepository;
+    private final ImageUploadService imageUploadService;
+    private final PasswordEncoder passwordEncoder;
+    private final JwtService jwtService;
+    private final AuthenticationManager authenticationManager;
+    private final UserDetailsService userDetailsService;
 
     @Transactional
     public User registerUser(User user, MultipartFile file) {
@@ -52,29 +54,23 @@ public class UserService {
         return userRepository.save(user);
     }
 
-    public User loginUser(String email, String password) {
-        User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new UsernameNotFoundException("User not found with email: " + email));
+    public LoginResponse loginUser(String email, String password) {
+        // Authenticate the user with Spring Security
+        authenticationManager.authenticate(
+                new UsernamePasswordAuthenticationToken(email, password)
+        );
+        // If authentication is successful, find user and generate token
+        User user = userRepository.findByEmail(email).orElseThrow();
+        UserDetails userDetails = userDetailsService.loadUserByUsername(email);
+        String jwtToken = jwtService.generateToken(userDetails);
 
-        if (passwordEncoder.matches(password, user.getPassword())) {
-            return user;
-        } else {
-            throw new IllegalArgumentException("Invalid credentials provided.");
-        }
+        // Return both the token and the user object
+        return new LoginResponse(jwtToken, user);
     }
 
-    // --- NEW METHODS FOR DISCOVERY, LIKES, AND MATCHES ---
-    /**
-     * Finds potential users for the discovery page. It filters by the opposite
-     * gender and excludes the current user and anyone they've already swiped.
-     */
     public List<User> getDiscoveryUsers(Long currentUserId) {
-        User currentUser = userRepository.findById(currentUserId)
-                .orElseThrow(() -> new RuntimeException("Current user not found"));
-
-        String currentUserGender = currentUser.getUserProfile().getGender();
-        String targetGender = "man".equalsIgnoreCase(currentUserGender) ? "woman" : "man";
-
+        User currentUser = userRepository.findById(currentUserId).orElseThrow(() -> new RuntimeException("User not found"));
+        String targetGender = "man".equalsIgnoreCase(currentUser.getUserProfile().getGender()) ? "woman" : "man";
         List<Long> swipedIds = interactionRepository.findBySwiperId(currentUserId).stream()
                 .map(Interaction::getSwipedId)
                 .collect(Collectors.toList());
@@ -95,10 +91,8 @@ public class UserService {
 
     public List<User> getMatches(Long currentUserId) {
         List<Long> usersWhoLikedYou = interactionRepository.findBySwipedIdAndAction(currentUserId, "like").stream()
-                .map(Interaction::getSwiperId)
-                .collect(Collectors.toList());
+                .map(Interaction::getSwiperId).collect(Collectors.toList());
 
-        // Corrected logic is here
         List<Long> usersYouLiked = interactionRepository.findBySwiperId(currentUserId).stream()
                 .filter(interaction -> "like".equalsIgnoreCase(interaction.getAction()))
                 .map(Interaction::getSwipedId)
