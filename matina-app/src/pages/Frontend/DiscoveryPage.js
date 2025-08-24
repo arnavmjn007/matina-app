@@ -6,28 +6,31 @@ import ProfileLeftPanel from '../../components/profile/ProfileLeftPanel';
 import ProfileImageActions from '../../components/profile/ProfileImageActions';
 import ProfileRightPanel from '../../components/profile/ProfileRightPanel';
 
-const DiscoveryPage = ({ user: activeUser }) => {
+const DiscoveryPage = ({ user }) => {
     const [users, setUsers] = useState([]);
     const [currentIndex, setCurrentIndex] = useState(0);
     const [direction, setDirection] = useState(0);
     const [isLoading, setIsLoading] = useState(true);
 
+    // This useEffect hook now safely waits for the 'user' prop before running.
     useEffect(() => {
         const fetchUsers = async () => {
-            if (!activeUser) return;
-            setIsLoading(true);
-            try {
-                const usersData = await getDiscoveryUsers(activeUser.id);
-                setUsers(usersData);
-            } catch (error) {
-                console.error("Failed to fetch users:", error);
-                message.error("Could not load profiles.");
-            } finally {
-                setIsLoading(false);
+            // Only run the fetch if the user object has been loaded and passed as a prop.
+            if (user) {
+                setIsLoading(true);
+                try {
+                    const usersData = await getDiscoveryUsers(user.id);
+                    setUsers(usersData);
+                } catch (error) {
+                    console.error("Failed to fetch users:", error);
+                    message.error("Could not load profiles.");
+                } finally {
+                    setIsLoading(false);
+                }
             }
         };
         fetchUsers();
-    }, [activeUser]);
+    }, [user]); // The effect depends on the 'user' prop.
 
     const handleAction = async (actionType) => {
         if (currentIndex >= users.length) return;
@@ -37,7 +40,7 @@ const DiscoveryPage = ({ user: activeUser }) => {
         setDirection(actionDirection);
 
         try {
-            const result = await recordSwipe(activeUser.id, swipedUser.id, actionType);
+            const result = await recordSwipe(user.id, swipedUser.id, actionType);
             if (result.isMatch) {
                 message.success(`It's a Match with ${swipedUser.firstName}!`, 3);
             }
@@ -45,21 +48,23 @@ const DiscoveryPage = ({ user: activeUser }) => {
             message.error("Something went wrong with your swipe.");
         }
 
+        // Move to the next card after a short delay for the animation
         setTimeout(() => {
             setCurrentIndex(prevIndex => prevIndex + 1);
         }, 150);
     };
 
     if (isLoading) {
-        return <div className="text-center font-semibold text-gray-500">Loading profiles...</div>;
+        return <div className="flex items-center justify-center h-full text-xl font-semibold text-gray-500">Loading profiles...</div>;
     }
 
     if (currentIndex >= users.length) {
-        return <div className="text-center font-semibold text-black">No more profiles to show. Check back later!</div>;
+        return <div className="flex items-center justify-center h-full text-xl font-semibold text-gray-500">No more profiles to show. Check back later!</div>;
     }
 
     const currentUser = users[currentIndex];
 
+    // Animation variants for the card swipe
     const variants = {
         enter: { y: 300, opacity: 0, scale: 0.9 },
         center: { zIndex: 1, y: 0, opacity: 1, scale: 1, transition: { duration: 0.4 } },

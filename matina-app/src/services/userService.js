@@ -50,8 +50,8 @@ export const getMatches = async (userId) => {
 };
 
 export const recordSwipe = async (swiperId, swipedId, action) => {
-  const response = await api.post('/interactions/swipe', { swiperId, swipedId, action });
-  return response.data;
+    const response = await api.post(`${INTERACTIONS_API_URL}/swipe`, { swiperId, swipedId, action });
+    return response.data;
 };
 
 export const updateUser = async (userId, userData) => {
