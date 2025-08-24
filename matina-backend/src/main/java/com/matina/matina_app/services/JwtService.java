@@ -17,9 +17,7 @@ import io.jsonwebtoken.security.Keys;
 
 @Service
 public class JwtService {
-
-    // Generate a secure secret key at https://www.allkeysgenerator.com/
-    private static final String SECRET_KEY = "YOUR_SUPER_SECRET_AND_LONG_ENCRYPTION_KEY_GOES_HERE";
+    private static final String SECRET_KEY = "5SynxVk1z0esZNJ2QhLwesID6zFV3qSnFNwC7ahHLh8=";
 
     public String extractUsername(String token) {
         return extractClaim(token, Claims::getSubject);
