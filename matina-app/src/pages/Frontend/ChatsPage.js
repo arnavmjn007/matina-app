@@ -1,7 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Send } from 'lucide-react';
-// FIX: Import the correct function
 import { getMatches } from '../../services/userService';
+
+// --- WebSocket Imports ---
+import { Client } from '@stomp/stompjs';
+import SockJS from 'sockjs-client';
 
 const ChatsPage = ({ user }) => {
   const [matches, setMatches] = useState([]);
@@ -10,16 +13,21 @@ const ChatsPage = ({ user }) => {
   const [newMessage, setNewMessage] = useState('');
   const [isLoading, setIsLoading] = useState(true);
 
+  // Use a ref to store the STOMP client instance.
+  // This prevents it from being re-created on every render.
+  const stompClientRef = useRef(null);
+
+  // Effect for fetching the user's matches
   useEffect(() => {
     const fetchMatches = async () => {
-      if (user) {
+      if (user?.id) {
         setIsLoading(true);
         try {
-          // FIX: Call the correct function with the user's ID
           const users = await getMatches(user.id);
           setMatches(users);
           if (users.length > 0) {
-            handleSelectChat(users[0]);
+            // Automatically select the first match
+            setSelectedChat(users[0]);
           }
         } catch (error) {
           console.error("Failed to fetch matches:", error);
@@ -31,18 +39,77 @@ const ChatsPage = ({ user }) => {
     fetchMatches();
   }, [user]);
 
+  // --- WebSocket Connection Effect ---
+  useEffect(() => {
+    // Connect only when a chat is selected and we have a user
+    if (selectedChat && user?.id) {
+      // Create a new STOMP client over a SockJS connection
+      const stompClient = new Client({
+        webSocketFactory: () => new SockJS('http://localhost:8081/ws'),
+        onConnect: () => {
+          console.log('WebSocket Connected!');
+
+          // Subscribe to the topic for this specific user to receive messages
+          // Any message sent to this user will arrive here.
+          stompClient.subscribe(`/topic/messages/${user.id}`, (message) => {
+            const receivedMessage = JSON.parse(message.body);
+
+            // Add the received message to the chat window, but only if it's from the selected user
+            if (receivedMessage.senderId === selectedChat.id.toString()) {
+              setMessages(prevMessages => [...prevMessages, receivedMessage]);
+            }
+          });
+        },
+        onStompError: (frame) => {
+          console.error('Broker reported error: ' + frame.headers['message']);
+          console.error('Additional details: ' + frame.body);
+        },
+      });
+
+      // Activate the client
+      stompClient.activate();
+
+      // Store the client in the ref
+      stompClientRef.current = stompClient;
+    }
+
+    // Cleanup function: This will be called when the component unmounts
+    // or when the selected chat changes.
+    return () => {
+      if (stompClientRef.current) {
+        stompClientRef.current.deactivate();
+        console.log('WebSocket Disconnected!');
+      }
+    };
+  }, [selectedChat, user?.id]); // Re-run this effect if the selected chat or user changes
+
   const handleSelectChat = (match) => {
     setSelectedChat(match);
+    // Clear old messages and add a system message for the new chat
     setMessages([
-      { id: 1, text: `You matched with ${match.firstName}!`, sender: 'System' },
+      { id: Date.now(), content: `You matched with ${match.firstName}!`, senderId: 'System' },
     ]);
   };
 
   const handleSendMessage = (e) => {
     e.preventDefault();
-    if (newMessage.trim() === '') return;
-    const message = { id: Date.now(), text: newMessage, sender: 'You' };
-    setMessages([...messages, message]);
+    if (newMessage.trim() === '' || !stompClientRef.current) return;
+
+    // Create the message payload
+    const chatMessage = {
+      content: newMessage,
+      senderId: user.id.toString(),
+      recipientId: selectedChat.id.toString(),
+    };
+
+    // Publish the message to the backend via WebSocket
+    stompClientRef.current.publish({
+      destination: '/app/chat.sendMessage',
+      body: JSON.stringify(chatMessage),
+    });
+
+    // Add the message to our own screen immediately
+    setMessages([...messages, chatMessage]);
     setNewMessage('');
   };
 
@@ -56,11 +123,7 @@ const ChatsPage = ({ user }) => {
         <div className="p-4 border-b"><h2 className="text-2xl font-bold">Matches</h2></div>
         <div className="flex-1 overflow-y-auto">
           {matches.map(match => (
-            <div
-              key={match.id}
-              onClick={() => handleSelectChat(match)}
-              className={`flex items-center p-4 cursor-pointer hover:bg-gray-100 ${selectedChat?.id === match.id ? 'bg-pink-50' : ''}`}
-            >
+            <div key={match.id} onClick={() => handleSelectChat(match)} className={`flex items-center p-4 cursor-pointer hover:bg-gray-100 ${selectedChat?.id === match.id ? 'bg-pink-50' : ''}`}>
               <img src={match.images?.[0]?.imageUrl} alt={match.firstName} className="w-14 h-14 rounded-full object-cover" />
               <div className="ml-4">
                 <p className="font-semibold">{match.firstName}</p>
@@ -78,23 +141,17 @@ const ChatsPage = ({ user }) => {
               <p className="ml-4 font-bold text-lg">{selectedChat.firstName}</p>
             </div>
             <div className="flex-1 p-6 overflow-y-auto bg-gray-50 space-y-4">
-              {messages.map(msg => (
-                <div key={msg.id} className={`flex ${msg.sender === 'You' ? 'justify-end' : 'justify-start'}`}>
-                  <div className={`max-w-md px-4 py-3 rounded-2xl ${msg.sender === 'You' ? 'bg-pink-500 text-white' : 'bg-gray-200'}`}>
-                    <p>{msg.text}</p>
+              {messages.map((msg, index) => (
+                <div key={index} className={`flex ${msg.senderId === user.id.toString() ? 'justify-end' : 'justify-start'}`}>
+                  <div className={`max-w-md px-4 py-3 rounded-2xl ${msg.senderId === user.id.toString() ? 'bg-pink-500 text-white' : 'bg-gray-200'}`}>
+                    <p>{msg.content}</p>
                   </div>
                 </div>
               ))}
             </div>
             <div className="p-4 bg-white border-t">
               <form onSubmit={handleSendMessage} className="flex items-center space-x-4">
-                <input
-                  type="text"
-                  value={newMessage}
-                  onChange={(e) => setNewMessage(e.target.value)}
-                  placeholder="Type a message..."
-                  className="flex-1 px-4 py-3 bg-gray-100 rounded-full focus:outline-none"
-                />
+                <input type="text" value={newMessage} onChange={(e) => setNewMessage(e.target.value)} placeholder="Type a message..." className="flex-1 px-4 py-3 bg-gray-100 rounded-full focus:outline-none" />
                 <button type="submit" className="bg-pink-500 text-white p-3 rounded-full hover:bg-pink-600">
                   <Send size={24} />
                 </button>
@@ -103,7 +160,7 @@ const ChatsPage = ({ user }) => {
           </>
         ) : (
           <div className="flex items-center justify-center h-full text-gray-500">
-            <p>You have no matches yet. Keep swiping!</p>
+            <p>{matches.length > 0 ? "Select a match to start chatting." : "You have no matches yet. Keep swiping!"}</p>
           </div>
         )}
       </div>
