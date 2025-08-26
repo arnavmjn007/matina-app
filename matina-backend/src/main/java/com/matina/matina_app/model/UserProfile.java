@@ -4,7 +4,6 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-
 import java.time.LocalDate;
 
 @Data
@@ -24,8 +23,7 @@ public class UserProfile {
     @Column(length = 1000)
     private String bio;
 
-    // This field is no longer needed here, as it's replaced by the list in User.java
-    // private String profileImageUrl;
+    // The old single image URL is removed from this file.
 
     @OneToOne(fetch = FetchType.LAZY)
     @MapsId

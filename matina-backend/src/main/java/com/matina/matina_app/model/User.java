@@ -23,8 +23,6 @@ public class User {
     private String firstName;
     private String lastName;
 
-    // --- Relationships ---
-
     @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
     private UserProfile userProfile;
 
