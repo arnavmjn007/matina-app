@@ -1,7 +1,6 @@
 import axios from 'axios';
 import api from './api';
 
-// This is the correct base URL
 const API_URL = 'http://localhost:8081/api/users';
 const INTERACTIONS_API_URL = 'http://localhost:8081/api/interactions';
 
@@ -11,7 +10,6 @@ export const createUser = async (userData, files) => {
     const formData = new FormData();
     formData.append('userData', JSON.stringify(userData));
 
-    // Loop through the files array and append each one.
     files.forEach(file => {
         formData.append('files', file);
     });
@@ -59,7 +57,6 @@ export const recordSwipe = async (swiperId, swipedId, action) => {
     return response.data;
 };
 
-// FIX: This function is now correctly implemented
 export const updateUser = async (userId, userData) => {
     const response = await api.put(`/users/${userId}`, userData);
     return response.data;
@@ -73,4 +70,20 @@ export const deleteUser = async (userId) => {
 export const updatePassword = async (userId, newPassword) => {
     const response = await api.put(`/users/password/${userId}`, { newPassword });
     return response.data;
+};
+
+// FIX: Add the new function to update the profile image
+export const updateUserWithImage = async (userId, file) => {
+    const formData = new FormData();
+    formData.append('file', file);
+    
+    try {
+        const response = await api.put(`${API_URL}/profile-image/${userId}`, formData, {
+            headers: { 'Content-Type': 'multipart/form-data' }
+        });
+        return response.data;
+    } catch (error) {
+        console.error("Error updating profile image:", error);
+        throw error;
+    }
 };
