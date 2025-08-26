@@ -1,26 +1,16 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState } from 'react';
 import Sidebar from '../../components/layout/Sidebar';
 import DiscoveryPage from '../Frontend/DiscoveryPage';
 import LikedPage from '../Frontend/LikedPage';
 import ChatsPage from '../Frontend/ChatsPage';
 import SettingsPage from '../Frontend/SettingsPage';
 
-const Dashboard = ({ onLogout }) => {
-  const [activeUser, setActiveUser] = useState(null);
+// 1. The component now receives its data as props from App.jsx
+const Dashboard = ({ user, onUserUpdate, onLogout }) => {
   const [currentPage, setCurrentPage] = useState('discovery');
 
-  const loadUser = useCallback(() => {
-    const storedUser = localStorage.getItem('user');
-    if (storedUser) {
-      setActiveUser(JSON.parse(storedUser));
-    } else {
-      onLogout();
-    }
-  }, [onLogout]);
-
-  useEffect(() => {
-    loadUser();
-  }, [loadUser]);
+  // 2. We no longer need 'activeUser' state or the 'loadUser' function.
+  // The 'user' prop is always the most up-to-date version.
 
   const handleNavigate = (page) => {
     if (page === 'logout') {
@@ -31,29 +21,30 @@ const Dashboard = ({ onLogout }) => {
   };
 
   const renderCurrentPage = () => {
-    // FIX: The core issue is here. If activeUser is null,
-    // it returns a loading state, preventing the render
-    if (!activeUser) {
-      return <div>Loading...</div>;
+    // This check is still good practice.
+    if (!user) {
+      return <div>Loading user data...</div>;
     }
 
     switch (currentPage) {
       case 'discovery':
-        return <DiscoveryPage user={activeUser} />;
+        return <DiscoveryPage user={user} />;
       case 'liked':
-        return <LikedPage user={activeUser} />;
+        return <LikedPage user={user} />;
       case 'chats':
-        return <ChatsPage user={activeUser} />;
+        return <ChatsPage user={user} />;
       case 'settings':
-        return <SettingsPage user={activeUser} onUserUpdate={loadUser} />;
+        // 3. We pass the onUserUpdate function from App.jsx directly to SettingsPage.
+        // This connects the "Save" button directly to the master update function.
+        return <SettingsPage user={user} onUserUpdate={onUserUpdate} />;
       default:
-        return <DiscoveryPage user={activeUser} />;
+        return <DiscoveryPage user={user} />;
     }
   };
 
   return (
     <div className="flex h-screen bg-gray-100">
-      <Sidebar navigateTo={handleNavigate} currentPage={currentPage} activeUser={activeUser} />
+      <Sidebar navigateTo={handleNavigate} currentPage={currentPage} activeUser={user} />
       <main className="flex-1 p-8 overflow-y-auto">
         {renderCurrentPage()}
       </main>

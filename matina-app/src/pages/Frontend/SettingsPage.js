@@ -18,21 +18,12 @@ const SettingsPage = ({ user, onUserUpdate }) => {
 
     const handleUpdate = async (updatedData) => {
         try {
-            // 1. CAPTURE the fresh, saved user object that the server returns.
             const savedUser = await updateUser(currentUser.id, updatedData);
-
             message.success('Settings updated successfully!');
-
-            // 2. UPDATE the component's state IMMEDIATELY with this fresh data.
-            //    This is the key step that tells React to re-render the screen
-            //    with the new, correct information ("Subinson Maharjan").
             setCurrentUser(savedUser);
-
-            // 3. Notify the parent component so the whole app is in sync.
             if (onUserUpdate) {
                 onUserUpdate(savedUser);
             }
-
         } catch (error) {
             console.error("Failed to save changes:", error);
             message.error('Failed to save changes. Please try again.');
