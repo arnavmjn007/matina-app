@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { Steps, Button, message } from 'antd';
 import { STEPS, getBasicsItems, INITIAL_FORM_DATA } from '../../config/registrationConstants';
 import { calculatePersonalityTraits } from '../../utils/profileUtils';
@@ -68,7 +68,7 @@ const ProfileSetupForm = ({ initialCredentials, onFinish }) => {
 
             const { photos, ...userPayload } = formData;
 
-            // FIX: Convert the dayjs birthday object to a simple string (YYYY-MM-DD)
+            // This is the critical fix for data formatting issues
             if (userPayload.userProfile && userPayload.userProfile.birthday) {
                 userPayload.userProfile.birthday = userPayload.userProfile.birthday.format('YYYY-MM-DD');
             }
@@ -78,6 +78,7 @@ const ProfileSetupForm = ({ initialCredentials, onFinish }) => {
             message.success('Registration Complete! Please log in.');
             onFinish();
         } catch (error) {
+            console.error("Registration failed:", error); // Log the full error
             const errorMessage = error.response?.data || 'Registration failed. Please try again.';
             message.error(errorMessage);
         } finally {

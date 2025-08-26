@@ -6,13 +6,14 @@ const INTERACTIONS_API_URL = 'http://localhost:8080/api/interactions';
 
 // --- Authentication (No Token Needed) ---
 
-// UPDATED: This function now accepts a list of files
 export const createUser = async (userData, files) => {
     const formData = new FormData();
     formData.append('userData', JSON.stringify(userData));
 
+    // Loop through the files array and append each one.
+    // The key "files" must match the @RequestParam name in the Spring Boot controller.
     files.forEach(file => {
-        formData.append('files', file); // Append each file to the 'files' key
+        formData.append('files', file);
     });
 
     try {
