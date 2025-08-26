@@ -27,4 +27,15 @@ public class ImageUploadService {
             throw new RuntimeException("Could not upload file: " + e.getMessage(), e);
         }
     }
+
+    public void deleteImage(String imageUrl) {
+        try {
+            // Extract the public ID from the full URL
+            String publicId = imageUrl.substring(imageUrl.lastIndexOf("/") + 1, imageUrl.lastIndexOf("."));
+            cloudinary.uploader().destroy(publicId, ObjectUtils.emptyMap());
+        } catch (IOException e) {
+            // Log the error but don't stop the user deletion process
+            System.err.println("Failed to delete image from Cloudinary: " + e.getMessage());
+        }
+    }
 }

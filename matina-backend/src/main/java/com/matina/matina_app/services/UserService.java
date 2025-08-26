@@ -83,10 +83,22 @@ public class UserService {
     }
 
     public List<User> getLikedUsers(Long currentUserId) {
+        // 1. Find IDs of users who have liked the current user
         List<Long> likerIds = interactionRepository.findBySwipedIdAndAction(currentUserId, "like").stream()
                 .map(Interaction::getSwiperId)
                 .collect(Collectors.toList());
-        return userRepository.findAllById(likerIds);
+
+        // 2. Find IDs of users the current user has already swiped on (liked OR disliked)
+        List<Long> alreadySwipedIds = interactionRepository.findBySwiperId(currentUserId).stream()
+                .map(Interaction::getSwipedId)
+                .collect(Collectors.toList());
+
+        // 3. Filter the list of likers to remove anyone the current user has already actioned
+        List<Long> finalLikerIds = likerIds.stream()
+                .filter(likerId -> !alreadySwipedIds.contains(likerId))
+                .collect(Collectors.toList());
+
+        return userRepository.findAllById(finalLikerIds);
     }
 
     public List<User> getMatches(Long currentUserId) {
@@ -103,5 +115,26 @@ public class UserService {
                 .collect(Collectors.toList());
 
         return userRepository.findAllById(matchIds);
+    }
+
+    public void deleteUser(Long userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        // First, delete the image from Cloudinary if it exists
+        if (user.getUserProfile() != null && user.getUserProfile().getProfileImageUrl() != null) {
+            imageUploadService.deleteImage(user.getUserProfile().getProfileImageUrl());
+        }
+
+        // Then, delete the user from the database
+        userRepository.deleteById(userId);
+    }
+
+    public void updateUserPassword(Long userId, String newPassword) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        user.setPassword(passwordEncoder.encode(newPassword));
+        userRepository.save(user);
     }
 }
