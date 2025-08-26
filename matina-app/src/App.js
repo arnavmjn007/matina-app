@@ -1,14 +1,14 @@
 import React, { useState, useEffect, useCallback } from 'react';
+// 1. Import the Ant Design App component
+import { App as AntApp } from 'antd';
 import Login from './pages/Backend/Login';
 import Register from './pages/Backend/Register';
 import Dashboard from './pages/Backend/Dashboard';
 
 function App() {
-    // The single source of truth for the user's data.
     const [user, setUser] = useState(null);
-    const [authView, setAuthView] = useState('login'); // To switch between login/register
+    const [authView, setAuthView] = useState('login');
 
-    // On initial app load, check localStorage to see if a user is already logged in.
     useEffect(() => {
         const storedUser = localStorage.getItem('user');
         if (storedUser) {
@@ -19,11 +19,9 @@ function App() {
     const handleLogout = useCallback(() => {
         localStorage.removeItem('user');
         localStorage.removeItem('token');
-        setUser(null); // Logging out is as simple as setting the user to null.
+        setUser(null);
     }, []);
 
-    // This is the master update function. It updates the state AND localStorage.
-    // This will be passed all the way down to the SettingsPage.
     const handleUserUpdate = (updatedUser) => {
         if (updatedUser) {
             setUser(updatedUser);
@@ -31,31 +29,37 @@ function App() {
         }
     };
 
-    // This function is called by the Login component after a successful login.
     const handleLogin = (loggedInUser) => {
-        // The login service already saves to localStorage, so we just update the state.
         setUser(loggedInUser);
     };
 
-    // If the 'user' object exists, the user is logged in.
-    if (user) {
-        return (
-            <Dashboard
-                user={user}
-                onUserUpdate={handleUserUpdate}
-                onLogout={handleLogout}
-            />
-        );
-    }
+    // Helper function to render the correct view based on auth state
+    const renderContent = () => {
+        if (user) {
+            return (
+                <Dashboard
+                    user={user}
+                    onUserUpdate={handleUserUpdate}
+                    onLogout={handleLogout}
+                />
+            );
+        }
 
-    // If no user, show either the login or register page.
-    switch (authView) {
-        case 'register':
-            return <Register navigateTo={() => setAuthView('login')} />;
-        case 'login':
-        default:
-            return <Login onLogin={handleLogin} navigateTo={() => setAuthView('register')} />;
-    }
+        switch (authView) {
+            case 'register':
+                return <Register navigateTo={() => setAuthView('login')} />;
+            case 'login':
+            default:
+                return <Login onLogin={handleLogin} navigateTo={() => setAuthView('register')} />;
+        }
+    };
+
+    // 2. Wrap the entire rendered output in the <AntApp> provider
+    return (
+        <AntApp>
+            {renderContent()}
+        </AntApp>
+    );
 }
 
 export default App;

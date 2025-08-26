@@ -9,20 +9,13 @@ import PreviewTab from './settings/PreviewTab';
 import { deleteUser } from '../../services/userService';
 import { calculatePersonalityTraits } from '../../utils/profileUtils';
 
-const SettingsTabs = ({ user, onUpdate }) => {
-    const [formData, setFormData] = useState({
-        firstName: user.firstName || '',
-        lastName: user.lastName || '',
-        email: user.email || '',
-        phone: user.userProfile?.phone || '',
-        address: user.userProfile?.address || '',
-        bio: user.userProfile?.bio || '',
-        interests: user.interests || [],
-        wantsTo: user.wantsTo || [],
-        basics: user.userBasics || {},
-        personality: user.userPersonality || {}
-    });
+const SettingsTabs = ({ user, onUpdate, onUserUpdate, onLogout }) => {
+    // Get the modal instance from Ant Design's hook to ensure pop-ups work.
+    const [modal, contextHolder] = Modal.useModal();
 
+    const [formData, setFormData] = useState({});
+
+    // Syncs the local form state whenever a new user prop is received from the parent.
     useEffect(() => {
         if (user) {
             setFormData({
@@ -40,20 +33,24 @@ const SettingsTabs = ({ user, onUpdate }) => {
         }
     }, [user]);
 
+    // This effect is for calculating personality scores.
     useEffect(() => {
-        const newScores = calculatePersonalityTraits(formData.personality);
-        if (
-            newScores.love !== formData.personality.love ||
-            newScores.care !== formData.personality.care ||
-            newScores.cute !== formData.personality.cute
-        ) {
-            setFormData(prev => ({
-                ...prev,
-                personality: { ...prev.personality, ...newScores }
-            }));
+        if (formData.personality) {
+            const newScores = calculatePersonalityTraits(formData.personality);
+            if (
+                newScores.love !== formData.personality.love ||
+                newScores.care !== formData.personality.care ||
+                newScores.cute !== formData.personality.cute
+            ) {
+                setFormData(prev => ({
+                    ...prev,
+                    personality: { ...prev.personality, ...newScores }
+                }));
+            }
         }
     }, [formData.personality]);
 
+    // Handles saving changes from the text-based forms.
     const handleSave = () => {
         const updatedData = {
             ...user,
@@ -73,8 +70,10 @@ const SettingsTabs = ({ user, onUpdate }) => {
         onUpdate(updatedData);
     };
 
+    // Handles the account deletion process.
     const handleDeleteAccount = () => {
-        Modal.confirm({
+        // Use the `modal` instance from the hook.
+        modal.confirm({
             title: 'Are you sure you want to delete your account?',
             content: 'This action cannot be undone.',
             okText: 'Yes, Delete',
@@ -84,8 +83,10 @@ const SettingsTabs = ({ user, onUpdate }) => {
                 try {
                     await deleteUser(user.id);
                     message.success('Account deleted successfully. Logging out...');
-                    localStorage.removeItem('user');
-                    window.location.href = '/';
+                    // Calls the main logout function from App.jsx to properly log out.
+                    if (onLogout) {
+                        onLogout();
+                    }
                 } catch (error) {
                     message.error('Failed to delete account. Please try again.');
                 }
@@ -112,7 +113,7 @@ const SettingsTabs = ({ user, onUpdate }) => {
             label: 'Profile Picture',
             children: (
                 <div className="p-4 space-y-8">
-                    <ProfilePicTab user={user} onUpdate={onUpdate} />
+                    <ProfilePicTab user={user} onUserUpdate={onUserUpdate} />
                 </div>
             ),
         },
@@ -164,7 +165,11 @@ const SettingsTabs = ({ user, onUpdate }) => {
     ];
 
     return (
-        <Tabs defaultActiveKey="personal" type="card" items={items} />
+        <>
+            {/* This contextHolder is an invisible element required for the modal to work. */}
+            {contextHolder}
+            <Tabs defaultActiveKey="personal" type="card" items={items} />
+        </>
     );
 };
 

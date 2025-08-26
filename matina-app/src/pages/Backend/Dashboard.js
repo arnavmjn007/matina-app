@@ -5,12 +5,8 @@ import LikedPage from '../Frontend/LikedPage';
 import ChatsPage from '../Frontend/ChatsPage';
 import SettingsPage from '../Frontend/SettingsPage';
 
-// 1. The component now receives its data as props from App.jsx
 const Dashboard = ({ user, onUserUpdate, onLogout }) => {
   const [currentPage, setCurrentPage] = useState('discovery');
-
-  // 2. We no longer need 'activeUser' state or the 'loadUser' function.
-  // The 'user' prop is always the most up-to-date version.
 
   const handleNavigate = (page) => {
     if (page === 'logout') {
@@ -21,7 +17,6 @@ const Dashboard = ({ user, onUserUpdate, onLogout }) => {
   };
 
   const renderCurrentPage = () => {
-    // This check is still good practice.
     if (!user) {
       return <div>Loading user data...</div>;
     }
@@ -34,9 +29,8 @@ const Dashboard = ({ user, onUserUpdate, onLogout }) => {
       case 'chats':
         return <ChatsPage user={user} />;
       case 'settings':
-        // 3. We pass the onUserUpdate function from App.jsx directly to SettingsPage.
-        // This connects the "Save" button directly to the master update function.
-        return <SettingsPage user={user} onUserUpdate={onUserUpdate} />;
+        // It correctly passes all props to SettingsPage
+        return <SettingsPage user={user} onUserUpdate={onUserUpdate} onLogout={onLogout} />;
       default:
         return <DiscoveryPage user={user} />;
     }
