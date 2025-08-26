@@ -36,9 +36,18 @@ public class UserService {
         if (userRepository.findByEmail(user.getEmail()).isPresent()) {
             throw new IllegalStateException("User with this email already exists.");
         }
-        if (user.getUserProfile() == null || user.getUserBasics() == null || user.getUserPersonality() == null) {
-            throw new IllegalStateException("Incomplete user data received.");
+
+        // FIX: Add null checks before setting bidirectional relationships
+        if (user.getUserProfile() != null) {
+            user.getUserProfile().setUser(user);
         }
+        if (user.getUserBasics() != null) {
+            user.getUserBasics().setUser(user);
+        }
+        if (user.getUserPersonality() != null) {
+            user.getUserPersonality().setUser(user);
+        }
+
         user.setPassword(passwordEncoder.encode(user.getPassword()));
 
         // Loop through each file, upload it, and add it to the user's image list
@@ -51,10 +60,6 @@ public class UserService {
             }
         }
 
-        user.getUserProfile().setUser(user);
-        user.getUserBasics().setUser(user);
-        user.getUserPersonality().setUser(user);
-
         return userRepository.save(user);
     }
 
@@ -62,7 +67,7 @@ public class UserService {
         authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(email, password)
         );
-        User user = userRepository.findByEmail(email).orElseThrow();
+        User user = userRepository.findByEmail(email).orElseThrow(() -> new RuntimeException("User not found"));
         UserDetails userDetails = userDetailsService.loadUserByUsername(email);
         String jwtToken = jwtService.generateToken(userDetails);
 
@@ -110,7 +115,6 @@ public class UserService {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
-        // Delete images from Cloudinary
         user.getImages().forEach(image -> imageUploadService.deleteImage(image.getImageUrl()));
 
         userRepository.deleteById(userId);

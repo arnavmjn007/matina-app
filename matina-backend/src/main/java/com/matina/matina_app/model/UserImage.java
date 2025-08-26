@@ -2,10 +2,15 @@ package com.matina.matina_app.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
+import lombok.Getter;
+import lombok.Setter;
 
+@Setter
+@Getter
 @Entity
 @Table(name = "user_images")
 public class UserImage {
+    // --- Getters and Setters ---
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -27,11 +32,4 @@ public class UserImage {
         this.user = user;
     }
 
-    // --- Getters and Setters ---
-    public Long getId() { return id; }
-    public void setId(Long id) { this.id = id; }
-    public String getImageUrl() { return imageUrl; }
-    public void setImageUrl(String imageUrl) { this.imageUrl = imageUrl; }
-    public User getUser() { return user; }
-    public void setUser(User user) { this.user = user; }
 }

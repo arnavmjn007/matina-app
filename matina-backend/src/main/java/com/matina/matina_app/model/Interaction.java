@@ -7,10 +7,15 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import lombok.Getter;
+import lombok.Setter;
 
+@Setter
+@Getter
 @Entity
 @Table(name = "interactions")
 public class Interaction {
+    // --- Getters and Setters ---
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -38,15 +43,4 @@ public class Interaction {
         this.timestamp = LocalDateTime.now();
     }
 
-    // --- Getters and Setters ---
-    public Long getId() { return id; }
-    public void setId(Long id) { this.id = id; }
-    public Long getSwiperId() { return swiperId; }
-    public void setSwiperId(Long swiperId) { this.swiperId = swiperId; }
-    public Long getSwipedId() { return swipedId; }
-    public void setSwipedId(Long swipedId) { this.swipedId = swipedId; }
-    public String getAction() { return action; }
-    public void setAction(String action) { this.action = action; }
-    public LocalDateTime getTimestamp() { return timestamp; }
-    public void setTimestamp(LocalDateTime timestamp) { this.timestamp = timestamp; }
 }
