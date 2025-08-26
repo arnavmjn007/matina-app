@@ -36,24 +36,29 @@ public class UserService {
             throw new IllegalStateException("User with this email already exists.");
         }
 
-        // FIX: Add strict validation for nested objects before saving
         if (user.getUserProfile() == null || user.getUserBasics() == null || user.getUserPersonality() == null) {
             throw new IllegalStateException("Incomplete user data received. Profile, Basics, or Personality data is missing.");
         }
 
         user.setPassword(passwordEncoder.encode(user.getPassword()));
 
-        // Set up the bidirectional relationships
-        user.getUserProfile().setUser(user);
-        user.getUserBasics().setUser(user);
-        user.getUserPersonality().setUser(user);
+        if (user.getUserProfile() != null) user.getUserProfile().setUser(user);
+        if (user.getUserBasics() != null) user.getUserBasics().setUser(user);
+        if (user.getUserPersonality() != null) user.getUserPersonality().setUser(user);
 
-        // Loop through each file, upload it, and add it to the user's image list
+        if (user.getImages() == null) {
+            user.setImages(new java.util.ArrayList<>());
+        }
+
         if (files != null && !files.isEmpty()) {
             for (MultipartFile file : files) {
                 if (!file.isEmpty()) {
-                    String imageUrl = imageUploadService.uploadFile(file);
-                    user.getImages().add(new UserImage(imageUrl, user));
+                    try {
+                        String imageUrl = imageUploadService.uploadFile(file);
+                        user.getImages().add(new UserImage(imageUrl, user));
+                    } catch (Exception e) {
+                        System.err.println("Failed to upload image during registration: " + e.getMessage());
+                    }
                 }
             }
         }
@@ -90,7 +95,16 @@ public class UserService {
         List<Long> likerIds = interactionRepository.findBySwipedIdAndAction(currentUserId, "like").stream()
                 .map(Interaction::getSwiperId)
                 .collect(Collectors.toList());
-        return userRepository.findAllById(likerIds);
+
+        List<Long> swipedOnIds = interactionRepository.findBySwiperId(currentUserId).stream()
+                .map(Interaction::getSwipedId)
+                .collect(Collectors.toList());
+
+        List<Long> unswipedLikerIds = likerIds.stream()
+                .filter(id -> !swipedOnIds.contains(id))
+                .collect(Collectors.toList());
+
+        return userRepository.findAllById(unswipedLikerIds);
     }
 
     public List<User> getMatches(Long currentUserId) {
