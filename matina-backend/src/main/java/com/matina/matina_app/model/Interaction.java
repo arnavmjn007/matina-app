@@ -27,10 +27,10 @@ public class Interaction {
     @Column(nullable = false)
     private LocalDateTime timestamp;
 
-    public Interaction() {
-        // No-argument constructor
-    }
+    // No-argument constructor for JPA
+    public Interaction() {}
 
+    // Constructor for creating new instances
     public Interaction(Long swiperId, Long swipedId, String action) {
         this.swiperId = swiperId;
         this.swipedId = swipedId;

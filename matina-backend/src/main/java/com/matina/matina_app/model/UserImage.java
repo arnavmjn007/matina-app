@@ -9,15 +9,19 @@ public class UserImage {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
     @Column(nullable = false)
     private String imageUrl;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
     @JsonIgnore
     private User user;
 
-    public UserImage() {} // No-argument constructor
+    // No-argument constructor for JPA
+    public UserImage() {}
 
+    // Constructor for creating new instances
     public UserImage(String imageUrl, User user) {
         this.imageUrl = imageUrl;
         this.user = user;
