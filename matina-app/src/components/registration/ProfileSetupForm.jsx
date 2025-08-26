@@ -1,11 +1,9 @@
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Steps, Button, message } from 'antd';
 import { STEPS, getBasicsItems, INITIAL_FORM_DATA } from '../../config/registrationConstants';
 import { calculatePersonalityTraits } from '../../utils/profileUtils';
 import { createUser } from '../../services/userService';
 import BasicsEditModal from '../common/BasicsEditModal';
-
-// Import all your individual step components
 import NameStep from './NameStep';
 import BirthdayStep from './BirthdayStep';
 import GenderStep from './GenderStep';
@@ -14,6 +12,7 @@ import PhotosStep from './PhotosStep';
 import BasicsStep from './BasicsStep';
 import PersonalityStep from './PersonalityStep';
 import AboutStep from './AboutStep';
+import dayjs from 'dayjs';
 
 const ProfileSetupForm = ({ initialCredentials, onFinish }) => {
     const [current, setCurrent] = useState(0);
@@ -66,11 +65,16 @@ const ProfileSetupForm = ({ initialCredentials, onFinish }) => {
                 return;
             }
 
-            const { photos, ...userPayload } = formData;
+            // Create a temporary object to hold the payload
+            const userPayload = { ...formData };
+            delete userPayload.photos;
 
-            // This is the critical fix for data formatting issues
-            if (userPayload.userProfile && userPayload.userProfile.birthday) {
+            // FIX: Ensure birthday is a Day.js object before formatting
+            if (userPayload.userProfile && userPayload.userProfile.birthday && dayjs.isDayjs(userPayload.userProfile.birthday)) {
                 userPayload.userProfile.birthday = userPayload.userProfile.birthday.format('YYYY-MM-DD');
+            } else if (userPayload.userProfile) {
+                // Set to a safe value or handle gracefully if it's not a Day.js object
+                userPayload.userProfile.birthday = null;
             }
 
             await createUser(userPayload, imageFiles);
@@ -78,8 +82,8 @@ const ProfileSetupForm = ({ initialCredentials, onFinish }) => {
             message.success('Registration Complete! Please log in.');
             onFinish();
         } catch (error) {
-            console.error("Registration failed:", error); // Log the full error
-            const errorMessage = error.response?.data || 'Registration failed. Please try again.';
+            console.error("Registration failed:", error);
+            const errorMessage = error.response?.data?.message || 'Registration failed. Please try again.';
             message.error(errorMessage);
         } finally {
             setIsSaving(false);
@@ -99,7 +103,7 @@ const ProfileSetupForm = ({ initialCredentials, onFinish }) => {
             case 7: return <AboutStep {...props} />;
             default: return null;
         }
-    }
+    };
 
     return (
         <div className="bg-white rounded-2xl shadow-xl flex flex-col md:flex-row w-full max-w-5xl overflow-hidden min-h-[70vh]">
