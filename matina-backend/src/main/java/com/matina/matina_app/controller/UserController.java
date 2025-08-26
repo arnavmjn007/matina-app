@@ -29,6 +29,11 @@ public class UserController {
             @RequestParam("userData") String userDataJson,
             @RequestParam("files") List<MultipartFile> files) {
         try {
+            // FIX: Add a check for an empty JSON string
+            if (userDataJson == null || userDataJson.trim().isEmpty()) {
+                return new ResponseEntity<>("User data is missing or empty.", HttpStatus.BAD_REQUEST);
+            }
+
             ObjectMapper objectMapper = new ObjectMapper();
             objectMapper.registerModule(new JavaTimeModule());
             User user = objectMapper.readValue(userDataJson, User.class);
@@ -37,7 +42,7 @@ public class UserController {
             return new ResponseEntity<>(registeredUser, HttpStatus.CREATED);
         } catch (IOException e) {
             return new ResponseEntity<>("Failed to parse user data: " + e.getMessage(), HttpStatus.BAD_REQUEST);
-        } catch (IllegalStateException e) { // FIX: Specific catch block for our business logic errors
+        } catch (IllegalStateException e) {
             return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
         } catch (Exception e) {
             return new ResponseEntity<>("Registration failed: " + e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);

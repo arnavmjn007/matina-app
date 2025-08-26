@@ -15,7 +15,6 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
-
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -37,18 +36,17 @@ public class UserService {
             throw new IllegalStateException("User with this email already exists.");
         }
 
-        // FIX: Add null checks before setting bidirectional relationships
-        if (user.getUserProfile() != null) {
-            user.getUserProfile().setUser(user);
-        }
-        if (user.getUserBasics() != null) {
-            user.getUserBasics().setUser(user);
-        }
-        if (user.getUserPersonality() != null) {
-            user.getUserPersonality().setUser(user);
+        // FIX: Add strict validation for nested objects before saving
+        if (user.getUserProfile() == null || user.getUserBasics() == null || user.getUserPersonality() == null) {
+            throw new IllegalStateException("Incomplete user data received. Profile, Basics, or Personality data is missing.");
         }
 
         user.setPassword(passwordEncoder.encode(user.getPassword()));
+
+        // Set up the bidirectional relationships
+        user.getUserProfile().setUser(user);
+        user.getUserBasics().setUser(user);
+        user.getUserPersonality().setUser(user);
 
         // Loop through each file, upload it, and add it to the user's image list
         if (files != null && !files.isEmpty()) {
