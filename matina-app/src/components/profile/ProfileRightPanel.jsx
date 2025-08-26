@@ -48,7 +48,8 @@ function ProfileRightPanel({ userProfile }) {
           </div>
         </div>
 
-        <button onClick={() => setIsModalOpen(true)} className="mt-8 w-full bg-blue-500 text-white font-bold py-3 rounded-full">
+        <button onClick={() => setIsModalOpen(true)} className="mt-8 w-full bg-pink-400 hover:bg-pink-500 text-white
+ font-bold py-3 rounded-full">
           Send a Superlike
         </button>
       </section>

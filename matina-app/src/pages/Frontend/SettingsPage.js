@@ -34,9 +34,9 @@ const SettingsPage = ({ user, onUserUpdate }) => {
     }
 
     return (
-        <div className="flex flex-col h-full bg-white rounded-2xl shadow-lg p-8">
+        <div className="flex flex-col h-auto bg-white rounded-2xl shadow-lg p-8">
             <h1 className="text-3xl font-bold text-gray-800 mb-6">Settings</h1>
-            <SettingsTabs user={currentUser} onUpdate={handleUpdate} />
+            {currentUser && <SettingsTabs user={currentUser} onUpdate={handleUpdate} />}
         </div>
     );
 };

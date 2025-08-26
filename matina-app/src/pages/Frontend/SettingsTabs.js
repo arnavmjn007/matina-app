@@ -1,13 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import { Tabs, Button, message } from 'antd'; // FIX: Add 'message' to the import list
+import { Tabs, Button, message, Modal } from 'antd';
 import PersonalInfoTab from './settings/PersonalInfoTab';
 import BasicsTab from './settings/BasicsTab';
 import PersonalityTab from './settings/PersonalityTab';
 import InterestsTab from './settings/InterestsTab';
 import ProfilePicTab from './settings/ProfilePicTab';
 import PreviewTab from './settings/PreviewTab';
-import { Modal } from 'antd';
 import { deleteUser } from '../../services/userService';
+import { calculatePersonalityTraits } from '../../utils/profileUtils';
 
 const { TabPane } = Tabs;
 
@@ -42,6 +42,20 @@ const SettingsTabs = ({ user, onUpdate }) => {
         }
     }, [user]);
 
+    useEffect(() => {
+        const newScores = calculatePersonalityTraits(formData.personality);
+        if (
+            newScores.love !== formData.personality.love ||
+            newScores.care !== formData.personality.care ||
+            newScores.cute !== formData.personality.cute
+        ) {
+            setFormData(prev => ({
+                ...prev,
+                personality: { ...prev.personality, ...newScores }
+            }));
+        }
+    }, [formData.personality]);
+
     const handleSave = () => {
         const updatedData = {
             ...user,
@@ -72,6 +86,7 @@ const SettingsTabs = ({ user, onUpdate }) => {
                 try {
                     await deleteUser(user.id);
                     message.success('Account deleted successfully. Logging out...');
+                    localStorage.removeItem('user');
                     window.location.href = '/';
                 } catch (error) {
                     message.error('Failed to delete account. Please try again.');
@@ -81,43 +96,57 @@ const SettingsTabs = ({ user, onUpdate }) => {
     };
 
     return (
-        <Tabs defaultActiveKey="personal" type="card">
-            <TabPane tab="Personal Info" key="personal">
-                <PersonalInfoTab formData={formData} setFormData={setFormData} />
-                <div className="mt-8 flex justify-between items-center">
-                    <Button type="primary" danger onClick={handleDeleteAccount}>Delete Account</Button>
-                    <Button type="primary" size="large" onClick={handleSave} className="bg-pink-500">Save Changes</Button>
-                </div>
-            </TabPane>
+        <Tabs defaultActiveKey="personal" type="card" className="h-full flex flex-col">
+            <div className="flex-1 overflow-y-auto">
+                <TabPane tab="Personal Info" key="personal">
+                    <div className="p-4 space-y-8">
+                        <PersonalInfoTab formData={formData} setFormData={setFormData} />
+                        <div className="flex justify-between items-center mt-4">
+                            <Button type="primary" danger onClick={handleDeleteAccount}>Delete Account</Button>
+                            <Button type="primary" size="large" onClick={handleSave} className="bg-pink-500">Save Changes</Button>
+                        </div>
+                    </div>
+                </TabPane>
 
-            <TabPane tab="Profile Picture" key="profilePic">
-                <ProfilePicTab user={user} onUpdate={onUpdate} />
-            </TabPane>
+                <TabPane tab="Profile Picture" key="profilePic">
+                    <div className="p-4 space-y-8">
+                        <ProfilePicTab user={user} onUpdate={onUpdate} />
+                    </div>
+                </TabPane>
 
-            <TabPane tab="My Basics" key="basics">
-                <BasicsTab formData={formData} setFormData={setFormData} />
-                <div className="mt-8 flex justify-end">
-                    <Button type="primary" size="large" onClick={handleSave} className="bg-pink-500">Save Changes</Button>
-                </div>
-            </TabPane>
+                <TabPane tab="My Basics" key="basics">
+                    <div className="p-4 space-y-8">
+                        <BasicsTab formData={formData} setFormData={setFormData} />
+                        <div className="flex justify-end mt-4">
+                            <Button type="primary" size="large" onClick={handleSave} className="bg-pink-500">Save Changes</Button>
+                        </div>
+                    </div>
+                </TabPane>
 
-            <TabPane tab="Personality" key="personality">
-                <PersonalityTab formData={formData} setFormData={setFormData} />
-                <div className="mt-8 flex justify-end">
-                    <Button type="primary" size="large" onClick={handleSave} className="bg-pink-500">Save Changes</Button>
-                </div>
-            </TabPane>
+                <TabPane tab="Personality" key="personality">
+                    <div className="p-4 space-y-8">
+                        <PersonalityTab formData={formData} setFormData={setFormData} />
+                        <div className="flex justify-end mt-4">
+                            <Button type="primary" size="large" onClick={handleSave} className="bg-pink-500">Save Changes</Button>
+                        </div>
+                    </div>
+                </TabPane>
 
-            <TabPane tab="Interests" key="interests">
-                <InterestsTab formData={formData} setFormData={setFormData} />
-                <div className="mt-8 flex justify-end">
-                    <Button type="primary" size="large" onClick={handleSave} className="bg-pink-500">Save Changes</Button>
-                </div>
-            </TabPane>
+                <TabPane tab="Interests" key="interests">
+                    <div className="p-4 space-y-8">
+                        <InterestsTab formData={formData} setFormData={setFormData} />
+                        <div className="flex justify-end mt-4">
+                            <Button type="primary" size="large" onClick={handleSave} className="bg-pink-500">Save Changes</Button>
+                        </div>
+                    </div>
+                </TabPane>
 
-            <TabPane tab="Preview" key="preview">
-                <PreviewTab user={user} formData={formData} />
-            </TabPane>
+                <TabPane tab="Preview" key="preview">
+                    <div className="p-4 space-y-8">
+                        <PreviewTab user={user} formData={formData} />
+                    </div>
+                </TabPane>
+            </div>
         </Tabs>
     );
 };
