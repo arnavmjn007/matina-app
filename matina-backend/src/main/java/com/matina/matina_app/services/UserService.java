@@ -18,6 +18,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -63,6 +64,10 @@ public class UserService {
             }
         }
         return userRepository.save(user);
+    }
+
+    public Optional<User> getUserById(Long userId) {
+        return userRepository.findById(userId);
     }
 
     /**
@@ -209,4 +214,6 @@ public class UserService {
         user.getImages().add(new UserImage(newImageUrl, user));
         userRepository.save(user);
     }
+
+
 }

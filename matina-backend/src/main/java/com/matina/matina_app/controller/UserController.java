@@ -118,6 +118,14 @@ public class UserController {
         }
     }
 
+    @GetMapping("/{userId}")
+    public ResponseEntity<User> getUserById(@PathVariable Long userId) {
+        // This uses the existing findById method from your UserRepository.
+        return userService.getUserById(userId)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
+    }
+
     // --- DTOs ---
     @Data
     public static class LoginRequest {
