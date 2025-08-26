@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Send } from 'lucide-react';
-import { getMatches } from '../../services/userService';
+import { getMatches, getChatHistory } from '../../services/userService';
 
 // WebSocket Imports
 import { Client } from '@stomp/stompjs';
@@ -12,12 +12,18 @@ const ChatsPage = ({ user }) => {
   const [messages, setMessages] = useState([]);
   const [newMessage, setNewMessage] = useState('');
   const [isLoading, setIsLoading] = useState(true);
-
-  // State to track the WebSocket connection status.
   const [isConnected, setIsConnected] = useState(false);
-
-  // Use a ref to store the STOMP client instance.
   const stompClientRef = useRef(null);
+  const messagesEndRef = useRef(null);
+
+  // Function to scroll to the latest message
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  };
+
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages]);
 
   // Effect for fetching the user's matches
   useEffect(() => {
@@ -25,10 +31,11 @@ const ChatsPage = ({ user }) => {
       if (user?.id) {
         setIsLoading(true);
         try {
-          const users = await getMatches(user.id);
-          setMatches(users);
-          if (users.length > 0) {
-            setSelectedChat(users[0]);
+          const matchedUsers = await getMatches(user.id);
+          setMatches(matchedUsers);
+          if (matchedUsers.length > 0) {
+            // Automatically select the first match, which will trigger the history fetch
+            handleSelectChat(matchedUsers[0]);
           }
         } catch (error) {
           console.error("Failed to fetch matches:", error);
@@ -38,75 +45,72 @@ const ChatsPage = ({ user }) => {
       }
     };
     fetchMatches();
+    // Disabling ESLint because we want this to run only once on user load
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user]);
 
   // WebSocket Connection Effect
   useEffect(() => {
     if (selectedChat && user?.id) {
-      // Reset connection status when a new chat is selected.
       setIsConnected(false);
-
       const stompClient = new Client({
         webSocketFactory: () => new SockJS('http://localhost:8081/ws'),
         onConnect: () => {
           console.log('WebSocket Connected!');
-          // When the connection succeeds, update the state.
           setIsConnected(true);
-
           stompClient.subscribe(`/topic/messages/${user.id}`, (message) => {
             const receivedMessage = JSON.parse(message.body);
-
-            // Add the received message to the chat window, but only if it's from the currently selected chat partner.
-            if (receivedMessage.senderId === selectedChat.id.toString()) {
+            // Only add the message if it's part of the currently active conversation
+            if (receivedMessage.senderId === selectedChat.id) {
               setMessages(prevMessages => [...prevMessages, receivedMessage]);
             }
           });
         },
-        onDisconnect: () => {
-          setIsConnected(false);
-          console.log('WebSocket Disconnected!');
-        },
-        onStompError: (frame) => {
-          console.error('Broker reported error: ' + frame.headers['message']);
-          console.error('Additional details: ' + frame.body);
-        },
+        onDisconnect: () => setIsConnected(false),
+        onStompError: (frame) => console.error(frame),
       });
-
       stompClient.activate();
       stompClientRef.current = stompClient;
     }
-
-    // Cleanup function to disconnect when the component unmounts or the chat changes.
     return () => {
       if (stompClientRef.current) {
         stompClientRef.current.deactivate();
-        setIsConnected(false);
       }
     };
   }, [selectedChat, user?.id]);
 
-  const handleSelectChat = (match) => {
+  // This function is called when a user clicks on a match in the sidebar
+  const handleSelectChat = async (match) => {
     setSelectedChat(match);
-    setMessages([
-      { id: Date.now(), content: `You matched with ${match.firstName}!`, senderId: 'System' },
-    ]);
+    try {
+      // Fetch the chat history for this conversation from the database
+      const history = await getChatHistory(user.id, match.id);
+      setMessages(history);
+    } catch (error) {
+      console.error("Failed to fetch chat history:", error);
+      // Fallback message if history fails to load
+      setMessages([{ content: `You matched with ${match.firstName}!`, senderId: 'System' }]);
+    }
   };
 
+  // This function sends a new message
   const handleSendMessage = (e) => {
     e.preventDefault();
     if (newMessage.trim() === '' || !isConnected || !stompClientRef.current?.active) return;
 
     const chatMessage = {
       content: newMessage,
-      senderId: user.id.toString(),
-      recipientId: selectedChat.id.toString(),
+      senderId: user.id,
+      recipientId: selectedChat.id,
     };
 
+    // Send the message to the server via WebSocket
     stompClientRef.current.publish({
       destination: '/app/chat.sendMessage',
       body: JSON.stringify(chatMessage),
     });
 
+    // Optimistically add the message to our own screen for immediate feedback
     setMessages([...messages, chatMessage]);
     setNewMessage('');
   };
@@ -125,7 +129,6 @@ const ChatsPage = ({ user }) => {
               <img src={match.images?.[0]?.imageUrl} alt={match.firstName} className="w-14 h-14 rounded-full object-cover" />
               <div className="ml-4">
                 <p className="font-semibold">{match.firstName}</p>
-                <p className="text-sm text-gray-500">Start chatting!</p>
               </div>
             </div>
           ))}
@@ -140,12 +143,13 @@ const ChatsPage = ({ user }) => {
             </div>
             <div className="flex-1 p-6 overflow-y-auto bg-gray-50 space-y-4">
               {messages.map((msg, index) => (
-                <div key={index} className={`flex ${msg.senderId === user.id.toString() ? 'justify-end' : 'justify-start'}`}>
-                  <div className={`max-w-md px-4 py-3 rounded-2xl ${msg.senderId === user.id.toString() ? 'bg-pink-500 text-white' : 'bg-gray-200'}`}>
+                <div key={msg.id || index} className={`flex ${msg.senderId === user.id ? 'justify-end' : 'justify-start'}`}>
+                  <div className={`max-w-md px-4 py-3 rounded-2xl ${msg.senderId === user.id ? 'bg-pink-500 text-white' : 'bg-gray-200'}`}>
                     <p>{msg.content}</p>
                   </div>
                 </div>
               ))}
+              <div ref={messagesEndRef} />
             </div>
             <div className="p-4 bg-white border-t">
               <form onSubmit={handleSendMessage} className="flex items-center space-x-4">
@@ -159,7 +163,7 @@ const ChatsPage = ({ user }) => {
                 />
                 <button
                   type="submit"
-                  disabled={!isConnected}
+                  disabled={!isConnected || newMessage.trim() === ''}
                   className="bg-pink-500 text-white p-3 rounded-full hover:bg-pink-600 disabled:bg-pink-300"
                 >
                   <Send size={24} />

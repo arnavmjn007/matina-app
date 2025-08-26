@@ -28,10 +28,9 @@ const Register = ({ navigateTo, onRegistrationComplete }) => {
         <div className="min-h-screen bg-gray-100 flex items-center justify-center p-4">
             {stage === 'credentials' ? (
                 <div className="bg-white rounded-3xl shadow-2xl overflow-hidden flex max-w-5xl w-full">
-                    <div className="hidden lg:block w-1/2 bg-cover bg-center" style={{ backgroundImage: `url('/images/loginbg.jpg')` }} />
+                    <div className="hidden lg:block w-1/2 bg-cover bg-center" style={{ backgroundImage: `url('/images/registerbg.jpg')` }} />
                     <div className="w-full lg:w-1/2 p-8 sm:p-12">
                         <h2 className="font-display text-4xl font-bold text-gray-900 mb-8">Create Account</h2>
-                        {/* FIX: Add the onSubmit handler to the form tag */}
                         <form onSubmit={handleCredentialsSubmit}>
                             <div className="space-y-6">
                                 <Input size="large" name="email" placeholder="Email Address" type="email" required />
@@ -51,8 +50,11 @@ const Register = ({ navigateTo, onRegistrationComplete }) => {
                     </div>
                 </div>
             ) : (
+                // --- THIS IS THE FIX ---
+                // We pass the credentials object as a prop named 'initialUserData'.
+                // We pass the onRegistrationComplete function as a prop named 'onFinish'.
                 <ProfileSetupForm
-                    initialCredentials={credentials}
+                    initialUserData={credentials}
                     onFinish={onRegistrationComplete}
                 />
             )}

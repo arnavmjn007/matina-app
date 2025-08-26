@@ -105,3 +105,8 @@ export const updateUserWithImage = async (userId, file) => {
         throw error;
     }
 };
+
+export const getChatHistory = async (senderId, recipientId) => {
+    const response = await api.get(`/messages/${senderId}/${recipientId}`);
+    return response.data;
+};

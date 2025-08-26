@@ -14,7 +14,9 @@ import PersonalityStep from './PersonalityStep';
 import AboutStep from './AboutStep';
 import dayjs from 'dayjs';
 
-const ProfileSetupForm = ({ initialCredentials, onFinish }) => {
+// --- THIS IS THE FIX ---
+// 1. The prop is now named 'initialUserData' to match what Register.jsx is sending.
+const ProfileSetupForm = ({ initialUserData, onFinish }) => {
     const [current, setCurrent] = useState(0);
     const [isModalVisible, setIsModalVisible] = useState(false);
     const [editingItem, setEditingItem] = useState(null);
@@ -22,9 +24,11 @@ const ProfileSetupForm = ({ initialCredentials, onFinish }) => {
 
     const [formData, setFormData] = useState({
         ...INITIAL_FORM_DATA,
-        ...initialCredentials
+        // 2. Use the correctly named prop here to set the email and password.
+        ...initialUserData
     });
 
+    // This effect calculates personality scores and does not need changes.
     useEffect(() => {
         const newScores = calculatePersonalityTraits(formData.userPersonality);
         if (
@@ -68,16 +72,21 @@ const ProfileSetupForm = ({ initialCredentials, onFinish }) => {
             const userPayload = { ...formData };
             delete userPayload.photos;
 
+            // Correctly format the birthday before sending to the backend
             if (userPayload.userProfile && userPayload.userProfile.birthday && dayjs.isDayjs(userPayload.userProfile.birthday)) {
                 userPayload.userProfile.birthday = userPayload.userProfile.birthday.format('YYYY-MM-DD');
             } else if (userPayload.userProfile) {
-                 userPayload.userProfile.birthday = null;
+                userPayload.userProfile.birthday = null;
             }
 
             await createUser(userPayload, imageFiles);
 
             message.success('Registration Complete! Please log in.');
-            onFinish();
+
+            // 3. This now works because 'onFinish' is being passed correctly from Register.jsx
+            if (onFinish) {
+                onFinish();
+            }
         } catch (error) {
             console.error("Registration failed:", error);
             const errorMessage = error.response?.data?.message || 'Registration failed. Please try again.';
@@ -89,7 +98,7 @@ const ProfileSetupForm = ({ initialCredentials, onFinish }) => {
 
     const renderCurrentStep = () => {
         const props = { data: formData, setFormData };
-        switch(current) {
+        switch (current) {
             case 0: return <NameStep {...props} />;
             case 1: return <BirthdayStep {...props} />;
             case 2: return <GenderStep {...props} />;
