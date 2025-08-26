@@ -93,6 +93,16 @@ public class UserController {
         }
     }
 
+    @PutMapping(value = "/profile-image/{userId}", consumes = {"multipart/form-data"})
+    public ResponseEntity<?> updateProfileImage(@PathVariable Long userId, @RequestParam("file") MultipartFile file) {
+        try {
+            userService.updateProfileImage(userId, file);
+            return ResponseEntity.ok(Map.of("message", "Profile image updated successfully"));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Failed to update profile image.");
+        }
+    }
+
     @Data
     public static class LoginRequest {
         private String email;

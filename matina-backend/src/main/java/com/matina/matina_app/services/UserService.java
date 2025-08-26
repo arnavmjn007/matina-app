@@ -15,6 +15,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
+
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -137,6 +138,24 @@ public class UserService {
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
         user.setPassword(passwordEncoder.encode(newPassword));
+        userRepository.save(user);
+    }
+
+    @Transactional
+    public void updateProfileImage(Long userId, MultipartFile file) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        // Delete all existing images from Cloudinary
+        user.getImages().forEach(image -> imageUploadService.deleteImage(image.getImageUrl()));
+
+        // Clear the images list to prepare for the new image
+        user.getImages().clear();
+
+        // Upload the new image
+        String newImageUrl = imageUploadService.uploadFile(file);
+        user.getImages().add(new UserImage(newImageUrl, user));
+
         userRepository.save(user);
     }
 }
