@@ -2,7 +2,8 @@ import React, { useState } from 'react';
 import { Input, Button, message } from 'antd';
 import { loginUser } from '../../services/userService';
 
-const Login = ({ navigateTo, setIsLoggedIn }) => {
+// 1. Accept 'onLogin' as a prop instead of 'setIsLoggedIn'.
+const Login = ({ navigateTo, onLogin }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
@@ -14,19 +15,20 @@ const Login = ({ navigateTo, setIsLoggedIn }) => {
     setError('');
 
     try {
-      // The backend now returns an object with a 'token' and a 'user' property
       const { token, user } = await loginUser(email, password);
       message.success('Login successful!');
 
-      // Store both the token and the user object in localStorage
       localStorage.setItem('token', token);
       localStorage.setItem('user', JSON.stringify(user));
 
-      // Update the main App state to show the dashboard
-      setIsLoggedIn(true);
+      // 2. Call the 'onLogin' function from App.jsx and pass it the new user object.
+      //    This will correctly update the main app's state.
+      if (onLogin) {
+        onLogin(user);
+      }
 
     } catch (apiError) {
-      const errorMessage = apiError.response?.data || 'Invalid email or password.';
+      const errorMessage = apiError.response?.data?.message || 'Invalid email or password.';
       setError(errorMessage);
       message.error(errorMessage);
     } finally {
