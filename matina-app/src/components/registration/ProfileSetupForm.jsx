@@ -65,16 +65,13 @@ const ProfileSetupForm = ({ initialCredentials, onFinish }) => {
                 return;
             }
 
-            // Create a temporary object to hold the payload
             const userPayload = { ...formData };
             delete userPayload.photos;
 
-            // FIX: Ensure birthday is a Day.js object before formatting
             if (userPayload.userProfile && userPayload.userProfile.birthday && dayjs.isDayjs(userPayload.userProfile.birthday)) {
                 userPayload.userProfile.birthday = userPayload.userProfile.birthday.format('YYYY-MM-DD');
             } else if (userPayload.userProfile) {
-                // Set to a safe value or handle gracefully if it's not a Day.js object
-                userPayload.userProfile.birthday = null;
+                 userPayload.userProfile.birthday = null;
             }
 
             await createUser(userPayload, imageFiles);
@@ -92,7 +89,7 @@ const ProfileSetupForm = ({ initialCredentials, onFinish }) => {
 
     const renderCurrentStep = () => {
         const props = { data: formData, setFormData };
-        switch (current) {
+        switch(current) {
             case 0: return <NameStep {...props} />;
             case 1: return <BirthdayStep {...props} />;
             case 2: return <GenderStep {...props} />;

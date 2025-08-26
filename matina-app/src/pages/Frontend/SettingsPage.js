@@ -1,179 +1,138 @@
-import { useState, useEffect } from 'react';
-import {
-    User, Settings as SettingsIcon, Trash2, Eye, Mail, Phone
-} from 'lucide-react';
-import {
-    Button, Input,Collapse, message, Modal, Form
-} from 'antd';
-import 'antd/dist/reset.css';
-// Import all necessary functions, including the new ones
-import { updateUser, deleteUser, updatePassword } from '../../services/userService';
-import ProfileLeftPanel from '../../components/profile/ProfileLeftPanel';
-import ProfileRightPanel from '../../components/profile/ProfileRightPanel';
+import { useState} from 'react';
+import { Button, Input, Select, message } from 'antd';
+import { updateUser } from '../../services/userService';
+import { INTEREST_OPTIONS, WANTS_TO_OPTIONS } from '../../config/registrationConstants';
 
-const { Panel } = Collapse;
 const { TextArea } = Input;
+const { Option } = Select;
 
-// Profile Preview Modal Component
-const ProfilePreviewModal = ({ isOpen, onCancel, userProfile }) => (
-    <Modal open={isOpen} onCancel={onCancel} footer={null} width={1000} centered>
-        <div className="p-4 bg-gray-100">
-            <h2 className="text-2xl font-bold text-center mb-4">Profile Preview</h2>
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
-                <ProfileLeftPanel userProfile={userProfile} />
-                <ProfileRightPanel userProfile={userProfile} />
-            </div>
-        </div>
-    </Modal>
-);
+const SettingsPage = ({ user, onUserUpdate }) => {
+    const [formData, setFormData] = useState({
+        firstName: user.firstName || '',
+        lastName: user.lastName || '',
+        bio: user.userProfile?.bio || '',
+        interests: user.interests || [],
+        wantsTo: user.wantsTo || [],
+        basics: user.userBasics || {},
+    });
 
-const SettingsPage = ({ onLogout }) => {
-    const [activeUser, setActiveUser] = useState(null);
-    const [isSaving, setIsSaving] = useState(false);
-    const [isPreviewVisible, setIsPreviewVisible] = useState(false);
-    const [form] = Form.useForm();
+    // Handle updates for top-level fields (firstName, lastName)
+    const handleTopLevelChange = (e) => {
+        const { name, value } = e.target;
+        setFormData(prev => ({ ...prev, [name]: value }));
+    };
 
-    useEffect(() => {
-        const storedUser = localStorage.getItem('user');
-        if (storedUser) {
-            setActiveUser(JSON.parse(storedUser));
-        }
-    }, []);
-
-    const handleStateChange = (section, key, value) => {
-        setActiveUser(prev => ({
+    // Handle updates for nested fields (bio, interests, wantsTo)
+    const handleNestedChange = (name, value) => {
+        setFormData(prev => ({
             ...prev,
-            [section]: { ...prev[section], [key]: value }
+            [name]: value
         }));
     };
 
-    const handleTopLevelChange = (key, value) => {
-        setActiveUser(prev => ({ ...prev, [key]: value }));
-    };
-
-    const handleSaveChanges = async () => {
-        setIsSaving(true);
+    // Function to handle the form submission
+    const handleSave = async () => {
         try {
-            const updatedUser = await updateUser(activeUser.id, activeUser);
-            localStorage.setItem('user', JSON.stringify(updatedUser));
-            message.success("Profile saved successfully!");
+            // Merge the form data with the existing user object
+            const updatedUser = {
+                ...user,
+                firstName: formData.firstName,
+                lastName: formData.lastName,
+                userProfile: {
+                    ...user.userProfile,
+                    bio: formData.bio,
+                },
+                userBasics: formData.basics,
+                interests: formData.interests,
+                wantsTo: formData.wantsTo
+            };
+
+            await updateUser(user.id, updatedUser);
+            message.success('User updated successfully!');
+            // After a successful update, refresh the user data in the parent component
+            if (onUserUpdate) {
+                onUserUpdate();
+            }
         } catch (error) {
-            message.error("Failed to save profile.");
-        } finally {
-            setIsSaving(false);
+            console.error("Failed to save changes:", error);
+            message.error('Failed to save changes. Please try again.');
         }
     };
-
-    const handleDeleteAccount = () => {
-        Modal.confirm({
-            title: 'Are you sure you want to delete your account?',
-            content: 'This action is permanent and cannot be undone.',
-            okText: 'Delete',
-            okType: 'danger',
-            onOk: async () => {
-                try {
-                    await deleteUser(activeUser.id);
-                    message.success('Account deleted successfully.');
-                    onLogout();
-                } catch (error) {
-                    message.error('Failed to delete account.');
-                }
-            },
-        });
-    };
-
-    const handlePasswordChange = async (values) => {
-        if (values.newPassword !== values.confirmPassword) {
-            return message.error("Passwords do not match!");
-        }
-        try {
-            await updatePassword(activeUser.id, values.newPassword);
-            message.success("Password updated successfully!");
-            form.resetFields();
-        } catch (error) {
-            message.error("Failed to update password.");
-        }
-    };
-
-    if (!activeUser) {
-        return <div className="text-center">Loading settings...</div>;
-    }
-
-    const panelHeader = (title, icon) => (
-        <div className="flex items-center space-x-3 text-lg font-semibold">{icon}{title}</div>
-    );
 
     return (
-        <>
-            <div className="max-w-4xl mx-auto space-y-8">
-                <div>
-                    <h1 className="text-4xl font-bold text-gray-800">Settings</h1>
+        <div className="flex flex-col h-full bg-white rounded-2xl shadow-lg p-8">
+            <h1 className="text-3xl font-bold text-gray-800 mb-6">Settings</h1>
+
+            <div className="flex flex-col space-y-6">
+                {/* Basic Info Inputs */}
+                <div className="space-y-4">
+                    <h2 className="text-2xl font-bold text-gray-700">Personal Info</h2>
+                    <Input
+                        size="large"
+                        placeholder="First Name"
+                        name="firstName"
+                        value={formData.firstName}
+                        onChange={handleTopLevelChange}
+                    />
+                    <Input
+                        size="large"
+                        placeholder="Last Name"
+                        name="lastName"
+                        value={formData.lastName}
+                        onChange={handleTopLevelChange}
+                    />
                 </div>
 
-                <Collapse defaultActiveKey={['1']} accordion className="bg-white rounded-lg shadow-sm border-none">
-                    <Panel header={panelHeader("Edit Profile", <User className="text-pink-500" />)} key="1">
-                        <div className="space-y-6 p-4">
-                            <div>
-                                <label className="block font-semibold mb-2">First Name</label>
-                                <Input value={activeUser.firstName} onChange={(e) => handleTopLevelChange('firstName', e.target.value)} />
-                            </div>
-                            <div>
-                                <label className="block font-semibold mb-2">Last Name</label>
-                                <Input value={activeUser.lastName} onChange={(e) => handleTopLevelChange('lastName', e.target.value)} />
-                            </div>
-                            <div>
-                                <label className="block font-semibold mb-2">About Me (Bio)</label>
-                                <TextArea rows={4} value={activeUser.userProfile.bio} onChange={(e) => handleStateChange('userProfile', 'bio', e.target.value)} />
-                            </div>
-                        </div>
-                    </Panel>
-
-                    <Panel header={panelHeader("Account Settings", <SettingsIcon className="text-pink-500" />)} key="2">
-                        <div className="space-y-6 p-4">
-                            <div className="flex items-center justify-between">
-                                <div className="flex items-center"><Mail className="w-5 h-5 mr-3" /><span>Email Address</span></div>
-                                <span className="font-semibold">{activeUser.email}</span>
-                            </div>
-                            <div className="flex items-center justify-between">
-                                <div className="flex items-center"><Phone className="w-5 h-5 mr-3" /><span>Phone Number</span></div>
-                                <Input value={activeUser.userProfile.phone} onChange={(e) => handleStateChange('userProfile', 'phone', e.target.value)} style={{ width: '200px' }} />
-                            </div>
-                            <hr />
-                            <h3 className="font-semibold text-gray-700">Change Password</h3>
-                            <Form form={form} onFinish={handlePasswordChange} layout="vertical">
-                                <Form.Item name="newPassword" label="New Password" rules={[{ required: true }]}>
-                                    <Input.Password />
-                                </Form.Item>
-                                <Form.Item name="confirmPassword" label="Confirm New Password" rules={[{ required: true }]}>
-                                    <Input.Password />
-                                </Form.Item>
-                                <Form.Item>
-                                    <Button type="primary" htmlType="submit">Update Password</Button>
-                                </Form.Item>
-                            </Form>
-                        </div>
-                    </Panel>
-                </Collapse>
-
-                <div className="flex flex-wrap gap-4 pt-8">
-                    <Button type="primary" size="large" onClick={handleSaveChanges} loading={isSaving} className="bg-pink-500">
-                        Save All Changes
-                    </Button>
-                    <Button size="large" icon={<Eye size={16} className="mr-2" />} onClick={() => setIsPreviewVisible(true)}>
-                        Preview Profile
-                    </Button>
-                    <Button size="large" danger icon={<Trash2 size={16} className="mr-2" />} onClick={handleDeleteAccount}>
-                        Delete Account
-                    </Button>
+                {/* Bio Input */}
+                <div className="space-y-4">
+                    <h2 className="text-2xl font-bold text-gray-700">Bio</h2>
+                    <TextArea
+                        rows={4}
+                        placeholder="Tell us something about yourself..."
+                        value={formData.bio}
+                        onChange={(e) => handleNestedChange('bio', e.target.value)}
+                    />
                 </div>
+
+                {/* Interests Input */}
+                <div className="space-y-4">
+                    <h2 className="text-2xl font-bold text-gray-700">Interests</h2>
+                    <Select
+                        mode="tags"
+                        style={{ width: '100%' }}
+                        placeholder="Add interests"
+                        value={formData.interests}
+                        onChange={(newInterests) => handleNestedChange('interests', newInterests)}
+                    >
+                        {INTEREST_OPTIONS.map(opt => <Option key={opt}>{opt}</Option>)}
+                    </Select>
+                </div>
+
+                {/* Wants To Input */}
+                <div className="space-y-4">
+                    <h2 className="text-2xl font-bold text-gray-700">Wants To</h2>
+                    <Select
+                        mode="tags"
+                        style={{ width: '100%' }}
+                        placeholder="Add your intentions"
+                        value={formData.wantsTo}
+                        onChange={(newWants) => handleNestedChange('wantsTo', newWants)}
+                    >
+                        {WANTS_TO_OPTIONS.map(opt => <Option key={opt}>{opt}</Option>)}
+                    </Select>
+                </div>
+
+                {/* Save Button */}
+                <Button
+                    type="primary"
+                    size="large"
+                    onClick={handleSave}
+                    className="bg-pink-500 hover:bg-pink-600"
+                >
+                    Save Changes
+                </Button>
             </div>
-
-            <ProfilePreviewModal
-                isOpen={isPreviewVisible}
-                onCancel={() => setIsPreviewVisible(false)}
-                userProfile={activeUser}
-            />
-        </>
+        </div>
     );
 };
 

@@ -1,8 +1,9 @@
 import axios from 'axios';
 import api from './api';
 
-const API_URL = 'http://localhost:8080/api/users';
-const INTERACTIONS_API_URL = 'http://localhost:8080/api/interactions';
+// This is the correct base URL
+const API_URL = 'http://localhost:8081/api/users';
+const INTERACTIONS_API_URL = 'http://localhost:8081/api/interactions';
 
 // --- Authentication (No Token Needed) ---
 
@@ -11,7 +12,6 @@ export const createUser = async (userData, files) => {
     formData.append('userData', JSON.stringify(userData));
 
     // Loop through the files array and append each one.
-    // The key "files" must match the @RequestParam name in the Spring Boot controller.
     files.forEach(file => {
         formData.append('files', file);
     });
@@ -59,6 +59,7 @@ export const recordSwipe = async (swiperId, swipedId, action) => {
     return response.data;
 };
 
+// FIX: This function is now correctly implemented
 export const updateUser = async (userId, userData) => {
     const response = await api.put(`/users/${userId}`, userData);
     return response.data;

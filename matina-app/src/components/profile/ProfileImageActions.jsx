@@ -18,8 +18,8 @@ const ProfileImageActions = ({ userProfile, handleAction }) => {
     }, 400); // 400ms delay to show the feedback icon
   };
 
-  // Get the single image URL from the correct nested object
-  const imageUrl = userProfile?.userProfile?.profileImageUrl;
+  // FIX: Get the image URL from the images list
+  const imageUrl = userProfile.images?.[0]?.imageUrl;
 
   return (
     <div className="flex flex-col items-center w-full">

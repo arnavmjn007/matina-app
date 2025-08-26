@@ -16,7 +16,6 @@ const PremiumModal = ({ isOpen, closeModal }) => (
                 <Star className="w-16 h-16 text-yellow-400 mb-4" fill="currentColor" />
                 <h1 className="text-4xl font-bold font-display">Matina Gold</h1>
             </div>
-            {/* ... other modal content ... */}
             <Button type="primary" size="large" block style={{ backgroundColor: '#FBBF24', color: '#1F2937' }}>
                 Upgrade Now - Rs. 999/month
             </Button>
@@ -30,7 +29,6 @@ const Sidebar = ({ navigateTo, currentPage, activeUser }) => {
     const getAge = (birthday) => {
         if (!birthday) return '';
         const age = new Date().getFullYear() - new Date(birthday).getFullYear();
-        // This is a simplified age calculation
         return age > 0 ? age : '';
     };
 
@@ -45,7 +43,8 @@ const Sidebar = ({ navigateTo, currentPage, activeUser }) => {
                     {activeUser ? (
                         <div className="flex items-center space-x-3 mb-5 p-2 rounded-lg">
                             <img
-                                src={activeUser.userProfile?.profileImageUrl}
+                                // FIX: Get the image URL from the images list
+                                src={activeUser.images?.[0]?.imageUrl}
                                 alt={`${activeUser.firstName}`}
                                 className="w-12 h-12 rounded-full object-cover"
                                 onError={(e) => { e.target.src = "https://placehold.co/48x48/71717a/FFFFFF?text=User"; }}
