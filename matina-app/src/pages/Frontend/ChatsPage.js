@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Send } from 'lucide-react';
 import { getMatches } from '../../services/userService';
 
-// --- WebSocket Imports ---
+// WebSocket Imports
 import { Client } from '@stomp/stompjs';
 import SockJS from 'sockjs-client';
 
@@ -13,8 +13,10 @@ const ChatsPage = ({ user }) => {
   const [newMessage, setNewMessage] = useState('');
   const [isLoading, setIsLoading] = useState(true);
 
+  // State to track the WebSocket connection status.
+  const [isConnected, setIsConnected] = useState(false);
+
   // Use a ref to store the STOMP client instance.
-  // This prevents it from being re-created on every render.
   const stompClientRef = useRef(null);
 
   // Effect for fetching the user's matches
@@ -26,7 +28,6 @@ const ChatsPage = ({ user }) => {
           const users = await getMatches(user.id);
           setMatches(users);
           if (users.length > 0) {
-            // Automatically select the first match
             setSelectedChat(users[0]);
           }
         } catch (error) {
@@ -39,26 +40,31 @@ const ChatsPage = ({ user }) => {
     fetchMatches();
   }, [user]);
 
-  // --- WebSocket Connection Effect ---
+  // WebSocket Connection Effect
   useEffect(() => {
-    // Connect only when a chat is selected and we have a user
     if (selectedChat && user?.id) {
-      // Create a new STOMP client over a SockJS connection
+      // Reset connection status when a new chat is selected.
+      setIsConnected(false);
+
       const stompClient = new Client({
         webSocketFactory: () => new SockJS('http://localhost:8081/ws'),
         onConnect: () => {
           console.log('WebSocket Connected!');
+          // When the connection succeeds, update the state.
+          setIsConnected(true);
 
-          // Subscribe to the topic for this specific user to receive messages
-          // Any message sent to this user will arrive here.
           stompClient.subscribe(`/topic/messages/${user.id}`, (message) => {
             const receivedMessage = JSON.parse(message.body);
 
-            // Add the received message to the chat window, but only if it's from the selected user
+            // Add the received message to the chat window, but only if it's from the currently selected chat partner.
             if (receivedMessage.senderId === selectedChat.id.toString()) {
               setMessages(prevMessages => [...prevMessages, receivedMessage]);
             }
           });
+        },
+        onDisconnect: () => {
+          setIsConnected(false);
+          console.log('WebSocket Disconnected!');
         },
         onStompError: (frame) => {
           console.error('Broker reported error: ' + frame.headers['message']);
@@ -66,26 +72,21 @@ const ChatsPage = ({ user }) => {
         },
       });
 
-      // Activate the client
       stompClient.activate();
-
-      // Store the client in the ref
       stompClientRef.current = stompClient;
     }
 
-    // Cleanup function: This will be called when the component unmounts
-    // or when the selected chat changes.
+    // Cleanup function to disconnect when the component unmounts or the chat changes.
     return () => {
       if (stompClientRef.current) {
         stompClientRef.current.deactivate();
-        console.log('WebSocket Disconnected!');
+        setIsConnected(false);
       }
     };
-  }, [selectedChat, user?.id]); // Re-run this effect if the selected chat or user changes
+  }, [selectedChat, user?.id]);
 
   const handleSelectChat = (match) => {
     setSelectedChat(match);
-    // Clear old messages and add a system message for the new chat
     setMessages([
       { id: Date.now(), content: `You matched with ${match.firstName}!`, senderId: 'System' },
     ]);
@@ -93,22 +94,19 @@ const ChatsPage = ({ user }) => {
 
   const handleSendMessage = (e) => {
     e.preventDefault();
-    if (newMessage.trim() === '' || !stompClientRef.current) return;
+    if (newMessage.trim() === '' || !isConnected || !stompClientRef.current?.active) return;
 
-    // Create the message payload
     const chatMessage = {
       content: newMessage,
       senderId: user.id.toString(),
       recipientId: selectedChat.id.toString(),
     };
 
-    // Publish the message to the backend via WebSocket
     stompClientRef.current.publish({
       destination: '/app/chat.sendMessage',
       body: JSON.stringify(chatMessage),
     });
 
-    // Add the message to our own screen immediately
     setMessages([...messages, chatMessage]);
     setNewMessage('');
   };
@@ -151,8 +149,19 @@ const ChatsPage = ({ user }) => {
             </div>
             <div className="p-4 bg-white border-t">
               <form onSubmit={handleSendMessage} className="flex items-center space-x-4">
-                <input type="text" value={newMessage} onChange={(e) => setNewMessage(e.target.value)} placeholder="Type a message..." className="flex-1 px-4 py-3 bg-gray-100 rounded-full focus:outline-none" />
-                <button type="submit" className="bg-pink-500 text-white p-3 rounded-full hover:bg-pink-600">
+                <input
+                  type="text"
+                  value={newMessage}
+                  onChange={(e) => setNewMessage(e.target.value)}
+                  placeholder={isConnected ? "Type a message..." : "Connecting to chat..."}
+                  disabled={!isConnected}
+                  className="flex-1 px-4 py-3 bg-gray-100 rounded-full focus:outline-none disabled:bg-gray-200"
+                />
+                <button
+                  type="submit"
+                  disabled={!isConnected}
+                  className="bg-pink-500 text-white p-3 rounded-full hover:bg-pink-600 disabled:bg-pink-300"
+                >
                   <Send size={24} />
                 </button>
               </form>
