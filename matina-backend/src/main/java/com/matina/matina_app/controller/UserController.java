@@ -2,6 +2,7 @@ package com.matina.matina_app.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import com.matina.matina_app.dto.MatchDTO;
 import com.matina.matina_app.model.User;
 import com.matina.matina_app.services.UserService;
 import lombok.Data;
@@ -16,7 +17,7 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/api/users")
-@CrossOrigin(origins = "http://localhost:3000")
+@CrossOrigin(origins = "http://localhost:3000") // This might be handled by a global config now
 public class UserController {
 
     private final UserService userService;
@@ -34,9 +35,6 @@ public class UserController {
             @RequestParam("userData") String userDataJson,
             @RequestParam(value = "files", required = false) List<MultipartFile> files) {
         try {
-            if (userDataJson == null || userDataJson.trim().isEmpty()) {
-                return new ResponseEntity<>("User data is missing or empty.", HttpStatus.BAD_REQUEST);
-            }
             User user = objectMapper.readValue(userDataJson, User.class);
             User registeredUser = userService.registerUser(user, files);
             return new ResponseEntity<>(registeredUser, HttpStatus.CREATED);
@@ -57,6 +55,14 @@ public class UserController {
         }
     }
 
+    // --- GET USER BY ID --- (For refreshing data on the frontend)
+    @GetMapping("/{userId}")
+    public ResponseEntity<User> getUserById(@PathVariable Long userId) {
+        return userService.getUserById(userId)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
+    }
+
     // --- DISCOVERY / LIKED / MATCHES ---
     @GetMapping("/discover/{userId}")
     public ResponseEntity<List<User>> getDiscoveryUsers(@PathVariable Long userId) {
@@ -68,8 +74,9 @@ public class UserController {
         return ResponseEntity.ok(userService.getLikedUsers(userId));
     }
 
+    // Returns a list of matched users along with their last message
     @GetMapping("/matches/{userId}")
-    public ResponseEntity<List<User>> getMatches(@PathVariable Long userId) {
+    public ResponseEntity<List<MatchDTO>> getMatches(@PathVariable Long userId) {
         return ResponseEntity.ok(userService.getMatches(userId));
     }
 
@@ -116,14 +123,6 @@ public class UserController {
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Failed to update profile image.");
         }
-    }
-
-    @GetMapping("/{userId}")
-    public ResponseEntity<User> getUserById(@PathVariable Long userId) {
-        // This uses the existing findById method from your UserRepository.
-        return userService.getUserById(userId)
-                .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
     }
 
     // --- DTOs ---

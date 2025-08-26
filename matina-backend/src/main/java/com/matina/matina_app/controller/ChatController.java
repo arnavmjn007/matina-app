@@ -27,9 +27,15 @@ public class ChatController {
     // This handles sending real-time messages
     @MessageMapping("/chat.sendMessage")
     public void sendMessage(@Payload ChatMessageDTO chatMessageDTO) {
-        // Save the message to the database
-        ChatMessage savedMessage = chatService.saveMessage(new ChatMessage(), chatMessageDTO.getSenderId(), chatMessageDTO.getRecipientId());
-        savedMessage.setContent(chatMessageDTO.getContent());
+        // --- THIS IS THE FIX ---
+        // 1. Create a new ChatMessage object.
+        ChatMessage messageToSave = new ChatMessage();
+        // 2. Set the content BEFORE saving.
+        messageToSave.setContent(chatMessageDTO.getContent());
+
+        // 3. Save the complete message (with content) to the database.
+        ChatMessage savedMessage = chatService.saveMessage(messageToSave, chatMessageDTO.getSenderId(), chatMessageDTO.getRecipientId());
+        // --- END OF THE FIX ---
 
         // Create a DTO to send over WebSocket to avoid circular references
         ChatMessageDTO messageToSend = ChatMessageDTO.fromEntity(savedMessage);
