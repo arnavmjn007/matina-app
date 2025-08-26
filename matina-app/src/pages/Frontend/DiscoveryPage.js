@@ -12,17 +12,14 @@ const DiscoveryPage = ({ user }) => {
     const [direction, setDirection] = useState(0);
     const [isLoading, setIsLoading] = useState(true);
 
-    // This useEffect hook now safely waits for the 'user' prop before running.
     useEffect(() => {
         const fetchUsers = async () => {
-            // Only run the fetch if the user object has been loaded and passed as a prop.
             if (user) {
                 setIsLoading(true);
                 try {
                     const usersData = await getDiscoveryUsers(user.id);
                     setUsers(usersData);
                 } catch (error) {
-                    console.error("Failed to fetch users:", error);
                     message.error("Could not load profiles.");
                 } finally {
                     setIsLoading(false);
@@ -30,7 +27,7 @@ const DiscoveryPage = ({ user }) => {
             }
         };
         fetchUsers();
-    }, [user]); // The effect depends on the 'user' prop.
+    }, [user]);
 
     const handleAction = async (actionType) => {
         if (currentIndex >= users.length) return;
@@ -45,36 +42,27 @@ const DiscoveryPage = ({ user }) => {
                 message.success(`It's a Match with ${swipedUser.firstName}!`, 3);
             }
         } catch (error) {
-            message.error("Something went wrong with your swipe.");
+            message.error("Something went wrong.");
         }
 
-        // Move to the next card after a short delay for the animation
         setTimeout(() => {
-            setCurrentIndex(prevIndex => prevIndex + 1);
+            setCurrentIndex(prev => prev + 1);
         }, 150);
     };
 
     if (isLoading) {
-        return <div className="flex items-center justify-center h-full text-xl font-semibold text-gray-500">Loading profiles...</div>;
+        return <div className="text-center font-semibold text-gray-500">Loading profiles...</div>;
     }
 
     if (currentIndex >= users.length) {
-        return <div className="flex items-center justify-center h-full text-xl font-semibold text-gray-500">No more profiles to show. Check back later!</div>;
+        return <div className="text-center font-semibold text-gray-500">No more profiles to show. Check back later!</div>;
     }
 
     const currentUser = users[currentIndex];
-
-    // Animation variants for the card swipe
     const variants = {
         enter: { y: 300, opacity: 0, scale: 0.9 },
         center: { zIndex: 1, y: 0, opacity: 1, scale: 1, transition: { duration: 0.4 } },
-        exit: (custom) => ({
-            zIndex: 0,
-            x: custom.direction < 0 ? -500 : 500,
-            opacity: 0,
-            scale: 0.8,
-            transition: { duration: 0.3 },
-        }),
+        exit: (custom) => ({ zIndex: 0, x: custom.direction < 0 ? -500 : 500, opacity: 0, scale: 0.8, transition: { duration: 0.3 } }),
     };
 
     return (

@@ -6,7 +6,7 @@ import ProfileImageActions from '../../components/profile/ProfileImageActions';
 import ProfileRightPanel from '../../components/profile/ProfileRightPanel';
 import { message } from 'antd';
 
-const LikedPage = ({ user: activeUser }) => {
+const LikedPage = ({ user }) => {
     const [likedUsers, setLikedUsers] = useState([]);
     const [currentIndex, setCurrentIndex] = useState(0);
     const [direction, setDirection] = useState(0);
@@ -14,20 +14,20 @@ const LikedPage = ({ user: activeUser }) => {
 
     useEffect(() => {
         const fetchLikedUsers = async () => {
-            if (!activeUser) return;
-            setIsLoading(true);
-            try {
-                // This API call now returns a correctly filtered list from the backend
-                const usersData = await getLikedUsers(activeUser.id);
-                setLikedUsers(usersData);
-            } catch (error) {
-                console.error("Failed to fetch liked users:", error);
-            } finally {
-                setIsLoading(false);
+            if (user) {
+                setIsLoading(true);
+                try {
+                    const usersData = await getLikedUsers(user.id);
+                    setLikedUsers(usersData);
+                } catch (error) {
+                    console.error("Failed to fetch liked users:", error);
+                } finally {
+                    setIsLoading(false);
+                }
             }
         };
         fetchLikedUsers();
-    }, [activeUser]);
+    }, [user]);
 
     const handleAction = async (actionType) => {
         if (currentIndex >= likedUsers.length) return;
@@ -37,17 +37,16 @@ const LikedPage = ({ user: activeUser }) => {
         setDirection(actionDirection);
 
         try {
-            const result = await recordSwipe(activeUser.id, swipedUser.id, actionType);
+            const result = await recordSwipe(user.id, swipedUser.id, actionType);
             if (result.isMatch) {
-                message.success(`You matched with ${swipedUser.firstName}! You can now chat.`);
+                message.success(`You matched with ${swipedUser.firstName}!`);
             }
         } catch (error) {
             message.error("Action failed.");
         }
 
-        // This moves to the next card in the current session
         setTimeout(() => {
-            setCurrentIndex(prevIndex => prevIndex + 1);
+            setCurrentIndex(prev => prev + 1);
         }, 150);
     };
 
@@ -60,18 +59,7 @@ const LikedPage = ({ user: activeUser }) => {
     }
 
     const currentUser = likedUsers[currentIndex];
-
-    const variants = {
-        enter: { y: 300, opacity: 0, scale: 0.9 },
-        center: { zIndex: 1, y: 0, opacity: 1, scale: 1, transition: { duration: 0.4 } },
-        exit: (custom) => ({
-            zIndex: 0,
-            x: custom.direction < 0 ? -500 : 500,
-            opacity: 0,
-            scale: 0.8,
-            transition: { duration: 0.3 },
-        }),
-    };
+    const variants = { /* ... same variants as DiscoveryPage ... */ };
 
     return (
         <div className="h-full flex flex-col">

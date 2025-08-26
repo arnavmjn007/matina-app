@@ -1,8 +1,12 @@
 package com.matina.matina_app.services;
 
-import java.util.List;
-import java.util.stream.Collectors;
-
+import com.matina.matina_app.dto.LoginResponse;
+import com.matina.matina_app.model.Interaction;
+import com.matina.matina_app.model.User;
+import com.matina.matina_app.model.UserImage;
+import com.matina.matina_app.repository.InteractionRepository;
+import com.matina.matina_app.repository.UserRepository;
+import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -12,16 +16,11 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
-import com.matina.matina_app.dto.LoginResponse;
-import com.matina.matina_app.model.Interaction;
-import com.matina.matina_app.model.User;
-import com.matina.matina_app.repository.InteractionRepository;
-import com.matina.matina_app.repository.UserRepository;
-
-import lombok.RequiredArgsConstructor;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
-@RequiredArgsConstructor // Lombok constructor for dependency injection
+@RequiredArgsConstructor
 public class UserService {
 
     private final UserRepository userRepository;
@@ -33,7 +32,7 @@ public class UserService {
     private final UserDetailsService userDetailsService;
 
     @Transactional
-    public User registerUser(User user, MultipartFile file) {
+    public User registerUser(User user, List<MultipartFile> files) {
         if (userRepository.findByEmail(user.getEmail()).isPresent()) {
             throw new IllegalStateException("User with this email already exists.");
         }
@@ -42,9 +41,14 @@ public class UserService {
         }
         user.setPassword(passwordEncoder.encode(user.getPassword()));
 
-        if (file != null && !file.isEmpty()) {
-            String imageUrl = imageUploadService.uploadFile(file);
-            user.getUserProfile().setProfileImageUrl(imageUrl);
+        // Loop through each file, upload it, and add it to the user's image list
+        if (files != null && !files.isEmpty()) {
+            for (MultipartFile file : files) {
+                if (!file.isEmpty()) {
+                    String imageUrl = imageUploadService.uploadFile(file);
+                    user.getImages().add(new UserImage(imageUrl, user));
+                }
+            }
         }
 
         user.getUserProfile().setUser(user);
@@ -55,16 +59,13 @@ public class UserService {
     }
 
     public LoginResponse loginUser(String email, String password) {
-        // Authenticate the user with Spring Security
         authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(email, password)
         );
-        // If authentication is successful, find user and generate token
         User user = userRepository.findByEmail(email).orElseThrow();
         UserDetails userDetails = userDetailsService.loadUserByUsername(email);
         String jwtToken = jwtService.generateToken(userDetails);
 
-        // Return both the token and the user object
         return new LoginResponse(jwtToken, user);
     }
 
@@ -83,22 +84,10 @@ public class UserService {
     }
 
     public List<User> getLikedUsers(Long currentUserId) {
-        // 1. Find IDs of users who have liked the current user
         List<Long> likerIds = interactionRepository.findBySwipedIdAndAction(currentUserId, "like").stream()
                 .map(Interaction::getSwiperId)
                 .collect(Collectors.toList());
-
-        // 2. Find IDs of users the current user has already swiped on (liked OR disliked)
-        List<Long> alreadySwipedIds = interactionRepository.findBySwiperId(currentUserId).stream()
-                .map(Interaction::getSwipedId)
-                .collect(Collectors.toList());
-
-        // 3. Filter the list of likers to remove anyone the current user has already actioned
-        List<Long> finalLikerIds = likerIds.stream()
-                .filter(likerId -> !alreadySwipedIds.contains(likerId))
-                .collect(Collectors.toList());
-
-        return userRepository.findAllById(finalLikerIds);
+        return userRepository.findAllById(likerIds);
     }
 
     public List<User> getMatches(Long currentUserId) {
@@ -121,12 +110,9 @@ public class UserService {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
-        // First, delete the image from Cloudinary if it exists
-        if (user.getUserProfile() != null && user.getUserProfile().getProfileImageUrl() != null) {
-            imageUploadService.deleteImage(user.getUserProfile().getProfileImageUrl());
-        }
+        // Delete images from Cloudinary
+        user.getImages().forEach(image -> imageUploadService.deleteImage(image.getImageUrl()));
 
-        // Then, delete the user from the database
         userRepository.deleteById(userId);
     }
 

@@ -26,12 +26,8 @@ const ProfileSetupForm = ({ initialCredentials, onFinish }) => {
         ...initialCredentials
     });
 
-    // This useEffect hook automatically calculates personality scores
-    // whenever the user changes one of their answers.
     useEffect(() => {
         const newScores = calculatePersonalityTraits(formData.userPersonality);
-
-        // FIX: Check if scores have actually changed to prevent an infinite loop
         if (
             newScores.love !== formData.userPersonality.love ||
             newScores.care !== formData.userPersonality.care ||
@@ -39,13 +35,10 @@ const ProfileSetupForm = ({ initialCredentials, onFinish }) => {
         ) {
             setFormData(prev => ({
                 ...prev,
-                userPersonality: {
-                    ...prev.userPersonality,
-                    ...newScores
-                }
+                userPersonality: { ...prev.userPersonality, ...newScores }
             }));
         }
-    }, [formData.userPersonality]); // FIX: Depend on the whole object as the linter suggests
+    }, [formData.userPersonality]);
 
     const handleNext = () => setCurrent(current + 1);
     const handlePrev = () => setCurrent(current - 1);
@@ -65,17 +58,20 @@ const ProfileSetupForm = ({ initialCredentials, onFinish }) => {
     const handleFinish = async () => {
         setIsSaving(true);
         try {
-            const { photos, ...userPayload } = formData;
-            const imageFile = photos[0]?.originFileObj;
+            // UPDATED: Get the list of raw file objects from the Ant Design file list
+            const imageFiles = formData.photos.map(file => file.originFileObj);
 
-            if (!imageFile) {
+            if (imageFiles.length === 0) {
                 message.error("Please upload at least one photo.");
                 setIsSaving(false);
                 return;
             }
 
-            // The userPayload now contains the automatically calculated personality scores
-            await createUser(userPayload, imageFile);
+            const { photos, ...userPayload } = formData;
+
+            // UPDATED: Pass the list of file objects to the service
+            await createUser(userPayload, imageFiles);
+
             message.success('Registration Complete! Please log in.');
             onFinish();
         } catch (error) {
@@ -108,7 +104,6 @@ const ProfileSetupForm = ({ initialCredentials, onFinish }) => {
                 <Steps direction="vertical" current={current} items={STEPS} />
             </div>
             <div className="w-full md:w-2/3 p-8 md:p-12 flex flex-col justify-between">
-                {/* FIX: Changed renderCurrentPage to renderCurrentStep */}
                 <div>{renderCurrentStep()}</div>
                 <div className="mt-8 flex justify-between">
                     {current > 0 && <Button size="large" onClick={handlePrev}>Back</Button>}
@@ -127,4 +122,5 @@ const ProfileSetupForm = ({ initialCredentials, onFinish }) => {
         </div>
     );
 };
+
 export default ProfileSetupForm;

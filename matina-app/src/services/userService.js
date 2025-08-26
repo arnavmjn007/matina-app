@@ -1,14 +1,22 @@
 import axios from 'axios';
-import api from './api'; // Import our custom api instance
+import api from './api';
 
 const API_URL = 'http://localhost:8080/api/users';
-// const INTERACTIONS_API_URL = 'http://localhost:8080/api/interactions';
+const INTERACTIONS_API_URL = 'http://localhost:8080/api/interactions';
 
 // --- Authentication (No Token Needed) ---
-export const createUser = async (userData, file) => {
+
+// UPDATED: This function now accepts a list of files
+export const createUser = async (userData, files) => {
     const formData = new FormData();
     formData.append('userData', JSON.stringify(userData));
-    formData.append('file', file);
+
+    // Loop through the files array and append each one.
+    // The key "files" must match the @RequestParam name in the Spring Boot controller.
+    files.forEach(file => {
+        formData.append('files', file);
+    });
+
     try {
         const response = await axios.post(`${API_URL}/register`, formData, {
             headers: { 'Content-Type': 'multipart/form-data' }
@@ -23,14 +31,15 @@ export const createUser = async (userData, file) => {
 export const loginUser = async (email, password) => {
     try {
         const response = await axios.post(`${API_URL}/login`, { email, password });
-        return response.data; // Returns { token, user }
+        return response.data;
     } catch (error) {
         console.error("Error during login:", error);
         throw error;
     }
 };
 
-// --- Authenticated Requests (Token Will Be Added Automatically) ---
+// --- Authenticated Requests ---
+
 export const getDiscoveryUsers = async (userId) => {
     const response = await api.get(`/users/discover/${userId}`);
     return response.data;
@@ -47,7 +56,7 @@ export const getMatches = async (userId) => {
 };
 
 export const recordSwipe = async (swiperId, swipedId, action) => {
-    const response = await api.post('/interactions/swipe', { swiperId, swipedId, action });
+    const response = await api.post(`${INTERACTIONS_API_URL}/swipe`, { swiperId, swipedId, action });
     return response.data;
 };
 
@@ -56,7 +65,6 @@ export const updateUser = async (userId, userData) => {
     return response.data;
 };
 
-// --- ADDED MISSING FUNCTIONS ---
 export const deleteUser = async (userId) => {
     const response = await api.delete(`/users/${userId}`);
     return response.data;

@@ -2,8 +2,7 @@ import { useState } from 'react';
 import { message, Input, Button } from 'antd';
 import ProfileSetupForm from '../../components/registration/ProfileSetupForm';
 
-// This component manages the two stages of registration: credentials and profile setup.
-const Register = ({ navigateTo }) => {
+const Register = ({ navigateTo, onRegistrationComplete }) => {
     const [stage, setStage] = useState('credentials');
     const [credentials, setCredentials] = useState({ email: '', password: '' });
 
@@ -32,6 +31,7 @@ const Register = ({ navigateTo }) => {
                     <div className="hidden lg:block w-1/2 bg-cover bg-center" style={{ backgroundImage: `url('/images/loginbg.jpg')` }} />
                     <div className="w-full lg:w-1/2 p-8 sm:p-12">
                         <h2 className="font-display text-4xl font-bold text-gray-900 mb-8">Create Account</h2>
+                        {/* FIX: Add the onSubmit handler to the form tag */}
                         <form onSubmit={handleCredentialsSubmit}>
                             <div className="space-y-6">
                                 <Input size="large" name="email" placeholder="Email Address" type="email" required />
@@ -53,7 +53,7 @@ const Register = ({ navigateTo }) => {
             ) : (
                 <ProfileSetupForm
                     initialCredentials={credentials}
-                    onFinish={() => navigateTo('login')}
+                    onFinish={onRegistrationComplete}
                 />
             )}
         </div>

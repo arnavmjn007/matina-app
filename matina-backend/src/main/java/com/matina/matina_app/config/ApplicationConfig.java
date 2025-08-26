@@ -17,7 +17,7 @@ public class ApplicationConfig {
 
     private final UserRepository userRepository;
 
-    // ADDED: Manual constructor to replace @RequiredArgsConstructor
+    // Manual constructor to replace @RequiredArgsConstructor
     public ApplicationConfig(UserRepository userRepository) {
         this.userRepository = userRepository;
     }
@@ -25,12 +25,12 @@ public class ApplicationConfig {
     @Bean
     public UserDetailsService userDetailsService() {
         return username -> userRepository.findByEmail(username)
-            .map(user -> new org.springframework.security.core.userdetails.User(
-                user.getEmail(),
-                user.getPassword(),
-                new java.util.ArrayList<>()
-            ))
-            .orElseThrow(() -> new UsernameNotFoundException("User not found with email: " + username));
+                .map(user -> new org.springframework.security.core.userdetails.User(
+                        user.getEmail(),
+                        user.getPassword(),
+                        new java.util.ArrayList<>()
+                ))
+                .orElseThrow(() -> new UsernameNotFoundException("User not found with email: " + username));
     }
 
     @Bean

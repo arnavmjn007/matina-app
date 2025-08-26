@@ -12,7 +12,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.util.List;
-import java.util.Map; // 1. ADD THIS IMPORT
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/users")
@@ -21,7 +21,6 @@ public class UserController {
 
     private final UserService userService;
 
-    // 2. USE CONSTRUCTOR INJECTION (replaces @Autowired)
     public UserController(UserService userService) {
         this.userService = userService;
     }
@@ -29,13 +28,13 @@ public class UserController {
     @PostMapping(value = "/register", consumes = {"multipart/form-data"})
     public ResponseEntity<?> registerUser(
             @RequestParam("userData") String userDataJson,
-            @RequestParam("file") MultipartFile file) {
+            @RequestParam("files") List<MultipartFile> files) {
         try {
             ObjectMapper objectMapper = new ObjectMapper();
             objectMapper.registerModule(new JavaTimeModule());
             User user = objectMapper.readValue(userDataJson, User.class);
 
-            User registeredUser = userService.registerUser(user, file);
+            User registeredUser = userService.registerUser(user, files);
             return new ResponseEntity<>(registeredUser, HttpStatus.CREATED);
         } catch (IOException | IllegalStateException e) {
             return new ResponseEntity<>("Registration failed: " + e.getMessage(), HttpStatus.BAD_REQUEST);
@@ -86,7 +85,6 @@ public class UserController {
         }
     }
 
-    // 3. MAKE INNER CLASSES PUBLIC
     @Data
     public static class LoginRequest {
         private String email;
