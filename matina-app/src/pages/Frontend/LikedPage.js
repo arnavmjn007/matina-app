@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { getLikedUsers, recordSwipe } from '../../services/userService';
 import ProfileLeftPanel from '../../components/profile/ProfileLeftPanel';
@@ -7,7 +7,7 @@ import ProfileRightPanel from '../../components/profile/ProfileRightPanel';
 import { message } from 'antd';
 
 const LikedPage = ({ user: activeUser }) => {
-    const [likedUsers, setLikedUsers] =  useState([]);
+    const [likedUsers, setLikedUsers] = useState([]);
     const [currentIndex, setCurrentIndex] = useState(0);
     const [direction, setDirection] = useState(0);
     const [isLoading, setIsLoading] = useState(true);
@@ -17,6 +17,7 @@ const LikedPage = ({ user: activeUser }) => {
             if (!activeUser) return;
             setIsLoading(true);
             try {
+                // This API call now returns a correctly filtered list from the backend
                 const usersData = await getLikedUsers(activeUser.id);
                 setLikedUsers(usersData);
             } catch (error) {
@@ -38,12 +39,13 @@ const LikedPage = ({ user: activeUser }) => {
         try {
             const result = await recordSwipe(activeUser.id, swipedUser.id, actionType);
             if (result.isMatch) {
-                message.success(`You matched with ${swipedUser.firstName}!`);
+                message.success(`You matched with ${swipedUser.firstName}! You can now chat.`);
             }
         } catch (error) {
             message.error("Action failed.");
         }
 
+        // This moves to the next card in the current session
         setTimeout(() => {
             setCurrentIndex(prevIndex => prevIndex + 1);
         }, 150);
@@ -58,7 +60,18 @@ const LikedPage = ({ user: activeUser }) => {
     }
 
     const currentUser = likedUsers[currentIndex];
-    const variants = { /* ... same variants as DiscoveryPage ... */ };
+
+    const variants = {
+        enter: { y: 300, opacity: 0, scale: 0.9 },
+        center: { zIndex: 1, y: 0, opacity: 1, scale: 1, transition: { duration: 0.4 } },
+        exit: (custom) => ({
+            zIndex: 0,
+            x: custom.direction < 0 ? -500 : 500,
+            opacity: 0,
+            scale: 0.8,
+            transition: { duration: 0.3 },
+        }),
+    };
 
     return (
         <div className="h-full flex flex-col">
