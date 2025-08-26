@@ -9,6 +9,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
@@ -19,36 +20,34 @@ import java.util.Map;
 public class UserController {
 
     private final UserService userService;
+    private final ObjectMapper objectMapper;
 
     public UserController(UserService userService) {
         this.userService = userService;
+        this.objectMapper = new ObjectMapper();
+        this.objectMapper.registerModule(new JavaTimeModule());
     }
 
+    // --- REGISTER ---
     @PostMapping(value = "/register", consumes = {"multipart/form-data"})
     public ResponseEntity<?> registerUser(
             @RequestParam("userData") String userDataJson,
-            @RequestParam("files") List<MultipartFile> files) {
+            @RequestParam(value = "files", required = false) List<MultipartFile> files) {
         try {
-            // FIX: Add a check for an empty JSON string
             if (userDataJson == null || userDataJson.trim().isEmpty()) {
                 return new ResponseEntity<>("User data is missing or empty.", HttpStatus.BAD_REQUEST);
             }
-
-            ObjectMapper objectMapper = new ObjectMapper();
-            objectMapper.registerModule(new JavaTimeModule());
             User user = objectMapper.readValue(userDataJson, User.class);
-
             User registeredUser = userService.registerUser(user, files);
             return new ResponseEntity<>(registeredUser, HttpStatus.CREATED);
         } catch (IOException e) {
             return new ResponseEntity<>("Failed to parse user data: " + e.getMessage(), HttpStatus.BAD_REQUEST);
-        } catch (IllegalStateException e) {
-            return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
         } catch (Exception e) {
             return new ResponseEntity<>("Registration failed: " + e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
+    // --- LOGIN ---
     @PostMapping("/login")
     public ResponseEntity<?> loginUser(@RequestBody LoginRequest loginRequest) {
         try {
@@ -58,6 +57,7 @@ public class UserController {
         }
     }
 
+    // --- DISCOVERY / LIKED / MATCHES ---
     @GetMapping("/discover/{userId}")
     public ResponseEntity<List<User>> getDiscoveryUsers(@PathVariable Long userId) {
         return ResponseEntity.ok(userService.getDiscoveryUsers(userId));
@@ -73,6 +73,19 @@ public class UserController {
         return ResponseEntity.ok(userService.getMatches(userId));
     }
 
+    // --- UPDATE USER (JSON body) ---
+    @PutMapping("/{userId}")
+    public ResponseEntity<?> updateUser(@PathVariable Long userId, @RequestBody User updatedUser) {
+        try {
+            User savedUser = userService.updateUser(userId, updatedUser);
+            return ResponseEntity.ok(savedUser);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Failed to update user: " + e.getMessage());
+        }
+    }
+
+    // --- DELETE USER ---
     @DeleteMapping("/{userId}")
     public ResponseEntity<?> deleteUser(@PathVariable Long userId) {
         try {
@@ -83,6 +96,7 @@ public class UserController {
         }
     }
 
+    // --- UPDATE PASSWORD ---
     @PutMapping("/password/{userId}")
     public ResponseEntity<?> updateUserPassword(@PathVariable Long userId, @RequestBody PasswordUpdateRequest request) {
         try {
@@ -93,6 +107,7 @@ public class UserController {
         }
     }
 
+    // --- UPDATE PROFILE IMAGE ---
     @PutMapping(value = "/profile-image/{userId}", consumes = {"multipart/form-data"})
     public ResponseEntity<?> updateProfileImage(@PathVariable Long userId, @RequestParam("file") MultipartFile file) {
         try {
@@ -103,6 +118,7 @@ public class UserController {
         }
     }
 
+    // --- DTOs ---
     @Data
     public static class LoginRequest {
         private String email;

@@ -2,6 +2,7 @@ package com.matina.matina_app.model;
 
 import jakarta.persistence.*;
 import lombok.Data;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -18,19 +19,31 @@ public class User {
     private String password;
     private String firstName;
     private String lastName;
-    @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
+
+    // FIX: Set fetch type to EAGER to load data immediately
+    @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.EAGER, orphanRemoval = true)
     private UserProfile userProfile;
-    @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
+
+    // FIX: Set fetch type to EAGER
+    @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.EAGER, orphanRemoval = true)
     private UserBasics userBasics;
-    @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
+
+    // FIX: Set fetch type to EAGER
+    @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.EAGER, orphanRemoval = true)
     private UserPersonality userPersonality;
-    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
+
+    // FIX: Set fetch type to EAGER
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.EAGER, orphanRemoval = true)
     private List<UserImage> images = new ArrayList<>();
-    @ElementCollection(fetch = FetchType.LAZY)
+
+    // FIX: Set fetch type to EAGER
+    @ElementCollection(fetch = FetchType.EAGER)
     @CollectionTable(name = "user_interests", joinColumns = @JoinColumn(name = "user_id"))
     @Column(name = "interest")
     private List<String> interests;
-    @ElementCollection(fetch = FetchType.LAZY)
+
+    // FIX: Set fetch type to EAGER
+    @ElementCollection(fetch = FetchType.EAGER)
     @CollectionTable(name = "user_wants_to", joinColumns = @JoinColumn(name = "user_id"))
     @Column(name = "wants")
     private List<String> wantsTo;
