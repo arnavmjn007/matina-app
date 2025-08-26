@@ -17,29 +17,27 @@ const SettingsPage = ({ user, onUserUpdate }) => {
     }, [user]);
 
     const handleUpdate = async (updatedData) => {
-    try {
-        // 1. Call the API and CAPTURE the saved user object it returns.
-        //    Your 'updateUser' service already returns this, we just need to use it.
-        const savedUser = await updateUser(currentUser.id, updatedData);
-        
-        message.success('Settings updated successfully!');
+        try {
+            // 1. CAPTURE the fresh, saved user object that the server returns.
+            const savedUser = await updateUser(currentUser.id, updatedData);
 
-        // 2. UPDATE the component's local state IMMEDIATELY with the fresh data.
-        //    This is the crucial step that fixes the bug. It ensures the component
-        //    is always working with the most recent data from the database.
-        setCurrentUser(savedUser);
+            message.success('Settings updated successfully!');
 
-        // 3. (Good Practice) Also notify the parent component about the update.
-        //    If your onUserUpdate function can accept data, pass it up.
-        if (onUserUpdate) {
-            onUserUpdate(savedUser); 
+            // 2. UPDATE the component's state IMMEDIATELY with this fresh data.
+            //    This is the key step that tells React to re-render the screen
+            //    with the new, correct information ("Subinson Maharjan").
+            setCurrentUser(savedUser);
+
+            // 3. Notify the parent component so the whole app is in sync.
+            if (onUserUpdate) {
+                onUserUpdate(savedUser);
+            }
+
+        } catch (error) {
+            console.error("Failed to save changes:", error);
+            message.error('Failed to save changes. Please try again.');
         }
-
-    } catch (error) {
-        console.error("Failed to save changes:", error);
-        message.error('Failed to save changes. Please try again.');
-    }
-};
+    };
 
     if (isLoading || !currentUser) {
         return <div className="text-center font-semibold text-gray-500">Loading settings...</div>;
