@@ -1,15 +1,20 @@
+// In: src/pages/Frontend/settings/ProfilePicTab.jsx
+
 import React from 'react';
 import { Upload, Button, message } from 'antd';
 import { UploadOutlined } from '@ant-design/icons';
-import { updateUserWithImage } from '../../../services/userService';
+// Import the two services we need
+import { updateUserWithImage, getUser } from '../../../services/userService';
 
-const ProfilePicTab = ({ user, onUpdate }) => {
+// The component now accepts 'onUserUpdate' from its parent
+const ProfilePicTab = ({ user, onUserUpdate }) => {
     const [fileList, setFileList] = React.useState([]);
 
     const onChange = ({ fileList: newFileList }) => {
         setFileList(newFileList);
     };
 
+    // THIS IS THE CORRECTED FUNCTION
     const handleUpdateProfilePic = async () => {
         if (fileList.length === 0) {
             message.error("Please select an image to upload.");
@@ -18,9 +23,22 @@ const ProfilePicTab = ({ user, onUpdate }) => {
 
         try {
             const file = fileList[0].originFileObj;
+
+            // 1. Upload the new image.
             await updateUserWithImage(user.id, file);
             message.success('Profile picture updated successfully!');
-            onUpdate();
+
+            // 2. Immediately fetch the fresh user data from the server.
+            const updatedUser = await getUser(user.id);
+
+            // 3. Call the master update function to refresh the entire app.
+            if (onUserUpdate) {
+                onUserUpdate(updatedUser);
+            }
+
+            // 4. Clear the file list for the next upload.
+            setFileList([]);
+
         } catch (error) {
             console.error("Failed to update profile picture:", error);
             message.error('Failed to update profile picture. Please try again.');

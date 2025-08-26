@@ -79,11 +79,22 @@ export const updatePassword = async (userId, newPassword) => {
     return response.data;
 };
 
+export const getUser = async (userId) => {
+    try {
+        // This calls the new backend endpoint we just created.
+        const response = await api.get(`/users/${userId}`);
+        return response.data;
+    } catch (error) {
+        console.error("Error fetching user:", error);
+        throw error;
+    }
+};
+
 // FIX: Add the new function to update the profile image
 export const updateUserWithImage = async (userId, file) => {
     const formData = new FormData();
     formData.append('file', file);
-    
+
     try {
         const response = await api.put(`${API_URL}/profile-image/${userId}`, formData, {
             headers: { 'Content-Type': 'multipart/form-data' }
