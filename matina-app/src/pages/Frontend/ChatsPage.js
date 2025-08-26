@@ -16,26 +16,27 @@ const ChatsPage = ({ user }) => {
   const stompClientRef = useRef(null);
   const messagesEndRef = useRef(null);
 
-  // Function to scroll to the latest message
+  // Helper function to scroll to the latest message
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
 
+  // Scroll to bottom whenever new messages are added
   useEffect(() => {
     scrollToBottom();
   }, [messages]);
 
-  // Effect for fetching the user's matches
+  // Fetch the list of matches (with last message data) when the component loads
   useEffect(() => {
     const fetchMatches = async () => {
       if (user?.id) {
         setIsLoading(true);
         try {
-          const matchedUsers = await getMatches(user.id);
-          setMatches(matchedUsers);
-          if (matchedUsers.length > 0) {
-            // Automatically select the first match, which will trigger the history fetch
-            handleSelectChat(matchedUsers[0]);
+          const matchData = await getMatches(user.id);
+          setMatches(matchData);
+          if (matchData.length > 0) {
+            // Automatically select the first match to show a conversation
+            handleSelectChat(matchData[0].user);
           }
         } catch (error) {
           console.error("Failed to fetch matches:", error);
@@ -45,11 +46,11 @@ const ChatsPage = ({ user }) => {
       }
     };
     fetchMatches();
-    // Disabling ESLint because we want this to run only once on user load
+    // Disabling ESLint as this should only run when the main user object changes.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user]);
 
-  // WebSocket Connection Effect
+  // Manage the WebSocket connection lifecycle
   useEffect(() => {
     if (selectedChat && user?.id) {
       setIsConnected(false);
@@ -60,7 +61,6 @@ const ChatsPage = ({ user }) => {
           setIsConnected(true);
           stompClient.subscribe(`/topic/messages/${user.id}`, (message) => {
             const receivedMessage = JSON.parse(message.body);
-            // Only add the message if it's part of the currently active conversation
             if (receivedMessage.senderId === selectedChat.id) {
               setMessages(prevMessages => [...prevMessages, receivedMessage]);
             }
@@ -79,38 +79,31 @@ const ChatsPage = ({ user }) => {
     };
   }, [selectedChat, user?.id]);
 
-  // This function is called when a user clicks on a match in the sidebar
-  const handleSelectChat = async (match) => {
-    setSelectedChat(match);
+  // Fetch chat history when a user clicks on a match
+  const handleSelectChat = async (matchUser) => {
+    setSelectedChat(matchUser);
     try {
-      // Fetch the chat history for this conversation from the database
-      const history = await getChatHistory(user.id, match.id);
+      const history = await getChatHistory(user.id, matchUser.id);
       setMessages(history);
     } catch (error) {
       console.error("Failed to fetch chat history:", error);
-      // Fallback message if history fails to load
-      setMessages([{ content: `You matched with ${match.firstName}!`, senderId: 'System' }]);
+      setMessages([{ content: `You matched with ${matchUser.firstName}!`, senderId: 'System' }]);
     }
   };
 
-  // This function sends a new message
+  // Send a new message
   const handleSendMessage = (e) => {
     e.preventDefault();
     if (newMessage.trim() === '' || !isConnected || !stompClientRef.current?.active) return;
-
     const chatMessage = {
       content: newMessage,
       senderId: user.id,
       recipientId: selectedChat.id,
     };
-
-    // Send the message to the server via WebSocket
     stompClientRef.current.publish({
       destination: '/app/chat.sendMessage',
       body: JSON.stringify(chatMessage),
     });
-
-    // Optimistically add the message to our own screen for immediate feedback
     setMessages([...messages, chatMessage]);
     setNewMessage('');
   };
@@ -124,11 +117,26 @@ const ChatsPage = ({ user }) => {
       <div className="w-1/3 border-r flex flex-col">
         <div className="p-4 border-b"><h2 className="text-2xl font-bold">Matches</h2></div>
         <div className="flex-1 overflow-y-auto">
-          {matches.map(match => (
-            <div key={match.id} onClick={() => handleSelectChat(match)} className={`flex items-center p-4 cursor-pointer hover:bg-gray-100 ${selectedChat?.id === match.id ? 'bg-pink-50' : ''}`}>
-              <img src={match.images?.[0]?.imageUrl} alt={match.firstName} className="w-14 h-14 rounded-full object-cover" />
-              <div className="ml-4">
-                <p className="font-semibold">{match.firstName}</p>
+          {matches.map(matchData => (
+            <div
+              key={matchData.user.id}
+              onClick={() => handleSelectChat(matchData.user)}
+              className={`flex items-center p-4 cursor-pointer hover:bg-gray-100 ${selectedChat?.id === matchData.user.id ? 'bg-pink-50' : ''}`}
+            >
+              <img src={matchData.user.images?.[0]?.imageUrl} alt={matchData.user.firstName} className="w-14 h-14 rounded-full object-cover" />
+              <div className="ml-4 overflow-hidden">
+                <p className="font-semibold">{matchData.user.firstName}</p>
+                <p className="text-sm text-gray-500 truncate">
+                  {matchData.lastMessage ? (
+                    matchData.lastMessage.senderId === user.id ? (
+                      `You: ${matchData.lastMessage.content}`
+                    ) : (
+                      matchData.lastMessage.content
+                    )
+                  ) : (
+                    "Start chatting!"
+                  )}
+                </p>
               </div>
             </div>
           ))}
@@ -143,8 +151,8 @@ const ChatsPage = ({ user }) => {
             </div>
             <div className="flex-1 p-6 overflow-y-auto bg-gray-50 space-y-4">
               {messages.map((msg, index) => (
-                <div key={msg.id || index} className={`flex ${msg.senderId === user.id ? 'justify-end' : 'justify-start'}`}>
-                  <div className={`max-w-md px-4 py-3 rounded-2xl ${msg.senderId === user.id ? 'bg-pink-500 text-white' : 'bg-gray-200'}`}>
+                <div key={msg.id || index} className={`flex ${Number(msg.senderId) === user.id ? 'justify-end' : 'justify-start'}`}>
+                  <div className={`max-w-md px-4 py-3 rounded-2xl ${Number(msg.senderId) === user.id ? 'bg-pink-500 text-white' : 'bg-gray-200'}`}>
                     <p>{msg.content}</p>
                   </div>
                 </div>
