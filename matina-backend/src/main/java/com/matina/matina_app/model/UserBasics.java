@@ -2,10 +2,14 @@ package com.matina.matina_app.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
-import lombok.Data;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.ToString;
 
-@Data
+@Getter
+@Setter
+@ToString
 @NoArgsConstructor
 @Entity
 @Table(name = "user_basics")
@@ -13,7 +17,6 @@ public class UserBasics {
 
     @Id
     private Long id;
-
     private String height;
     private String exercise;
     private String education;
@@ -29,5 +32,6 @@ public class UserBasics {
     @MapsId
     @JoinColumn(name = "id")
     @JsonIgnore
+    @ToString.Exclude // <-- THIS IS THE CRITICAL FIX
     private User user;
 }

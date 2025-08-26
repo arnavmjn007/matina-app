@@ -32,7 +32,6 @@ public class User {
     @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
     private UserPersonality userPersonality;
 
-    // This new relationship holds the list of all profile images
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
     private List<UserImage> images = new ArrayList<>();
 

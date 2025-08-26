@@ -2,13 +2,17 @@ package com.matina.matina_app.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
-import lombok.Data;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.ToString;
 
-@Data
+@Getter
+@Setter
+@ToString
+@NoArgsConstructor
 @Entity
 @Table(name = "user_images")
-@NoArgsConstructor
 public class UserImage {
 
     @Id
@@ -21,6 +25,7 @@ public class UserImage {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
     @JsonIgnore
+    @ToString.Exclude // <-- THIS IS THE CRITICAL FIX
     private User user;
 
     public UserImage(String imageUrl, User user) {
