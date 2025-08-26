@@ -14,14 +14,11 @@ import lombok.ToString;
 @Entity
 @Table(name = "user_images")
 public class UserImage {
-
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-
     @Column(nullable = false)
     private String imageUrl;
-
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
     @JsonIgnore

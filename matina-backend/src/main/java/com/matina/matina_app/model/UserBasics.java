@@ -14,7 +14,6 @@ import lombok.ToString;
 @Entity
 @Table(name = "user_basics")
 public class UserBasics {
-
     @Id
     private Long id;
     private String height;
@@ -27,7 +26,6 @@ public class UserBasics {
     private String starSign;
     private String politics;
     private String religion;
-
     @OneToOne(fetch = FetchType.LAZY)
     @MapsId
     @JoinColumn(name = "id")

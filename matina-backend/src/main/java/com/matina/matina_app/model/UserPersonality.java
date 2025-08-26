@@ -14,7 +14,6 @@ import lombok.ToString;
 @Entity
 @Table(name = "user_personality")
 public class UserPersonality {
-
     @Id
     private Long id;
     private String q1_care;
@@ -23,7 +22,6 @@ public class UserPersonality {
     private Integer love;
     private Integer care;
     private Integer cute;
-
     @OneToOne(fetch = FetchType.LAZY)
     @MapsId
     @JoinColumn(name = "id")

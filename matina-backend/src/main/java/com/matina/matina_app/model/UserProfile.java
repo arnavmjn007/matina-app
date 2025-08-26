@@ -15,18 +15,14 @@ import java.time.LocalDate;
 @Entity
 @Table(name = "user_profiles")
 public class UserProfile {
-
     @Id
     private Long id;
-
     private LocalDate birthday;
     private String gender;
     private String phone;
     private String address;
-
     @Column(length = 1000)
     private String bio;
-
     @OneToOne(fetch = FetchType.LAZY)
     @MapsId
     @JoinColumn(name = "id")
