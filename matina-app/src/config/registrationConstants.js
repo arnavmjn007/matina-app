@@ -45,7 +45,6 @@ export const INITIAL_FORM_DATA = {
         phone: '',    
         address: '',
         bio: '',
-        profileImageUrl: '',
     },
 
     // Nested UserBasics object
