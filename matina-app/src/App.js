@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import Login from './pages/Backend/Login';
 import Register from './pages/Backend/Register';
 import Dashboard from './pages/Backend/Dashboard';
@@ -14,11 +14,12 @@ function App() {
         }
     }, []);
 
-    const handleLogout = () => {
+    // FIX: Wrap handleLogout in useCallback to make it a stable reference
+    const handleLogout = useCallback(() => {
         localStorage.removeItem('user');
         setIsLoggedIn(false);
         setView('login');
-    };
+    }, []);
 
     const navigateTo = (page) => {
         if (page === 'dashboard') {
@@ -27,18 +28,17 @@ function App() {
         setView(page);
     };
 
-    // This function will be called when registration is finished
     const handleRegistrationComplete = () => {
-        setView('login'); // Go back to the login page
+        setView('login');
     };
 
     if (isLoggedIn) {
+        // Now passing a stable reference to handleLogout
         return <Dashboard onLogout={handleLogout} />;
     }
 
     switch (view) {
         case 'register':
-            // Pass the new function as a prop
             return <Register navigateTo={navigateTo} onRegistrationComplete={handleRegistrationComplete} />;
         case 'login':
         default:

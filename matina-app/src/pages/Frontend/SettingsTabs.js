@@ -9,8 +9,6 @@ import PreviewTab from './settings/PreviewTab';
 import { deleteUser } from '../../services/userService';
 import { calculatePersonalityTraits } from '../../utils/profileUtils';
 
-const { TabPane } = Tabs;
-
 const SettingsTabs = ({ user, onUpdate }) => {
     const [formData, setFormData] = useState({
         firstName: user.firstName || '',
@@ -95,59 +93,78 @@ const SettingsTabs = ({ user, onUpdate }) => {
         });
     };
 
+    const items = [
+        {
+            key: 'personal',
+            label: 'Personal Info',
+            children: (
+                <div className="p-4 space-y-8">
+                    <PersonalInfoTab formData={formData} setFormData={setFormData} />
+                    <div className="flex justify-between items-center mt-4">
+                        <Button type="primary" danger onClick={handleDeleteAccount}>Delete Account</Button>
+                        <Button type="primary" size="large" onClick={handleSave} className="bg-pink-500">Save Changes</Button>
+                    </div>
+                </div>
+            ),
+        },
+        {
+            key: 'profilePic',
+            label: 'Profile Picture',
+            children: (
+                <div className="p-4 space-y-8">
+                    <ProfilePicTab user={user} onUpdate={onUpdate} />
+                </div>
+            ),
+        },
+        {
+            key: 'basics',
+            label: 'My Basics',
+            children: (
+                <div className="p-4 space-y-8">
+                    <BasicsTab formData={formData} setFormData={setFormData} />
+                    <div className="flex justify-end mt-4">
+                        <Button type="primary" size="large" onClick={handleSave} className="bg-pink-500">Save Changes</Button>
+                    </div>
+                </div>
+            ),
+        },
+        {
+            key: 'personality',
+            label: 'Personality',
+            children: (
+                <div className="p-4 space-y-8">
+                    <PersonalityTab formData={formData} setFormData={setFormData} />
+                    <div className="flex justify-end mt-4">
+                        <Button type="primary" size="large" onClick={handleSave} className="bg-pink-500">Save Changes</Button>
+                    </div>
+                </div>
+            ),
+        },
+        {
+            key: 'interests',
+            label: 'Interests',
+            children: (
+                <div className="p-4 space-y-8">
+                    <InterestsTab formData={formData} setFormData={setFormData} />
+                    <div className="flex justify-end mt-4">
+                        <Button type="primary" size="large" onClick={handleSave} className="bg-pink-500">Save Changes</Button>
+                    </div>
+                </div>
+            ),
+        },
+        {
+            key: 'preview',
+            label: 'Preview',
+            children: (
+                <div className="p-4 space-y-8">
+                    <PreviewTab user={user} formData={formData} />
+                </div>
+            ),
+        },
+    ];
+
     return (
-        <Tabs defaultActiveKey="personal" type="card" className="h-full flex flex-col">
-            <div className="flex-1 overflow-y-auto">
-                <TabPane tab="Personal Info" key="personal">
-                    <div className="p-4 space-y-8">
-                        <PersonalInfoTab formData={formData} setFormData={setFormData} />
-                        <div className="flex justify-between items-center mt-4">
-                            <Button type="primary" danger onClick={handleDeleteAccount}>Delete Account</Button>
-                            <Button type="primary" size="large" onClick={handleSave} className="bg-pink-500">Save Changes</Button>
-                        </div>
-                    </div>
-                </TabPane>
-
-                <TabPane tab="Profile Picture" key="profilePic">
-                    <div className="p-4 space-y-8">
-                        <ProfilePicTab user={user} onUpdate={onUpdate} />
-                    </div>
-                </TabPane>
-
-                <TabPane tab="My Basics" key="basics">
-                    <div className="p-4 space-y-8">
-                        <BasicsTab formData={formData} setFormData={setFormData} />
-                        <div className="flex justify-end mt-4">
-                            <Button type="primary" size="large" onClick={handleSave} className="bg-pink-500">Save Changes</Button>
-                        </div>
-                    </div>
-                </TabPane>
-
-                <TabPane tab="Personality" key="personality">
-                    <div className="p-4 space-y-8">
-                        <PersonalityTab formData={formData} setFormData={setFormData} />
-                        <div className="flex justify-end mt-4">
-                            <Button type="primary" size="large" onClick={handleSave} className="bg-pink-500">Save Changes</Button>
-                        </div>
-                    </div>
-                </TabPane>
-
-                <TabPane tab="Interests" key="interests">
-                    <div className="p-4 space-y-8">
-                        <InterestsTab formData={formData} setFormData={setFormData} />
-                        <div className="flex justify-end mt-4">
-                            <Button type="primary" size="large" onClick={handleSave} className="bg-pink-500">Save Changes</Button>
-                        </div>
-                    </div>
-                </TabPane>
-
-                <TabPane tab="Preview" key="preview">
-                    <div className="p-4 space-y-8">
-                        <PreviewTab user={user} formData={formData} />
-                    </div>
-                </TabPane>
-            </div>
-        </Tabs>
+        <Tabs defaultActiveKey="personal" type="card" items={items} />
     );
 };
 

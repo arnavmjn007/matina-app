@@ -67,7 +67,7 @@ const Sidebar = ({ navigateTo, currentPage, activeUser }) => {
                         <span className="text-2xl font-bold text-white">Matina</span>
                     </div>
                     {activeUser ? (
-                        <div className="flex items-center space-x-3 mb-5 p-2 rounded-lg bg-white/10">
+                        <div className="flex items-center space-x-3 mb-5 p-2 rounded-lg">
                             <img
                                 src={activeUser.images?.[0]?.imageUrl}
                                 alt={`${activeUser.firstName}`}

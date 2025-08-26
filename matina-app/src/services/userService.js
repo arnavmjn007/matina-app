@@ -58,8 +58,15 @@ export const recordSwipe = async (swiperId, swipedId, action) => {
 };
 
 export const updateUser = async (userId, userData) => {
-    const response = await api.put(`/users/${userId}`, userData);
-    return response.data;
+    try {
+        const response = await api.put(`/users/${userId}`, userData, {
+            headers: { "Content-Type": "application/json" }
+        });
+        return response.data;
+    } catch (error) {
+        console.error("Error updating user:", error.response?.data || error.message);
+        throw error;
+    }
 };
 
 export const deleteUser = async (userId) => {
