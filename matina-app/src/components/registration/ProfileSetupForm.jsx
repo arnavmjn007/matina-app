@@ -58,7 +58,6 @@ const ProfileSetupForm = ({ initialCredentials, onFinish }) => {
     const handleFinish = async () => {
         setIsSaving(true);
         try {
-            // Get the list of raw file objects
             const imageFiles = formData.photos.map(file => file.originFileObj);
 
             if (imageFiles.length === 0) {
@@ -69,11 +68,11 @@ const ProfileSetupForm = ({ initialCredentials, onFinish }) => {
 
             const { photos, ...userPayload } = formData;
 
+            // FIX: Convert the dayjs birthday object to a simple string (YYYY-MM-DD)
             if (userPayload.userProfile && userPayload.userProfile.birthday) {
                 userPayload.userProfile.birthday = userPayload.userProfile.birthday.format('YYYY-MM-DD');
             }
 
-            // Pass the list of file objects to the service
             await createUser(userPayload, imageFiles);
 
             message.success('Registration Complete! Please log in.');
