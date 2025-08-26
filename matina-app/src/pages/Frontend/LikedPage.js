@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+// FIX: Import the correct functions
 import { getLikedUsers, recordSwipe } from '../../services/userService';
 import ProfileLeftPanel from '../../components/profile/ProfileLeftPanel';
 import ProfileImageActions from '../../components/profile/ProfileImageActions';
@@ -17,6 +18,7 @@ const LikedPage = ({ user }) => {
             if (user) {
                 setIsLoading(true);
                 try {
+                    // FIX: Call the correct function with the user's ID
                     const usersData = await getLikedUsers(user.id);
                     setLikedUsers(usersData);
                 } catch (error) {

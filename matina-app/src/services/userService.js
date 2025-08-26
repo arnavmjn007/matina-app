@@ -11,10 +11,8 @@ export const createUser = async (userData, files) => {
     const formData = new FormData();
     formData.append('userData', JSON.stringify(userData));
 
-    // Loop through the files array and append each one.
-    // The key "files" must match the @RequestParam name in the Spring Boot controller.
     files.forEach(file => {
-        formData.append('files', file);
+        formData.append('files', file); // Append each file to the 'files' key
     });
 
     try {

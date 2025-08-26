@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { MapPin, Zap } from 'lucide-react';
+// FIX: Remove the unused 'Button' import
 import { Modal } from 'antd';
 
 const SuperlikeModal = ({ isOpen, closeModal, userName }) => (
@@ -30,7 +31,6 @@ function ProfileRightPanel({ userProfile }) {
 
           <hr className="my-4" />
 
-          {/* --- ADDED THIS SECTION --- */}
           <h3 className="text-2xl font-bold mb-4">Wants to</h3>
           <div className="flex flex-wrap gap-2 mb-8">
             {userProfile.wantsTo?.map((item, index) => (
@@ -39,7 +39,6 @@ function ProfileRightPanel({ userProfile }) {
               </span>
             ))}
           </div>
-          {/* --- END OF ADDED SECTION --- */}
 
           <hr className="my-4" />
           <h3 className="text-2xl font-bold mb-4">Location</h3>

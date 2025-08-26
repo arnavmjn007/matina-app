@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { message } from 'antd';
+// FIX: Import the correct functions
 import { getDiscoveryUsers, recordSwipe } from '../../services/userService';
 import ProfileLeftPanel from '../../components/profile/ProfileLeftPanel';
 import ProfileImageActions from '../../components/profile/ProfileImageActions';
@@ -17,6 +18,7 @@ const DiscoveryPage = ({ user }) => {
             if (user) {
                 setIsLoading(true);
                 try {
+                    // FIX: Call the correct function with the user's ID
                     const usersData = await getDiscoveryUsers(user.id);
                     setUsers(usersData);
                 } catch (error) {

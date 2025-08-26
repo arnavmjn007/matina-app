@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Send } from 'lucide-react';
+// FIX: Import the correct function
 import { getMatches } from '../../services/userService';
 
 const ChatsPage = ({ user }) => {
@@ -14,6 +15,7 @@ const ChatsPage = ({ user }) => {
       if (user) {
         setIsLoading(true);
         try {
+          // FIX: Call the correct function with the user's ID
           const users = await getMatches(user.id);
           setMatches(users);
           if (users.length > 0) {
@@ -31,10 +33,8 @@ const ChatsPage = ({ user }) => {
 
   const handleSelectChat = (match) => {
     setSelectedChat(match);
-    // NOTE: This is dummy data. Real-time chat requires WebSockets.
     setMessages([
       { id: 1, text: `You matched with ${match.firstName}!`, sender: 'System' },
-      { id: 2, text: `Hey!`, sender: match.firstName },
     ]);
   };
 
@@ -61,7 +61,7 @@ const ChatsPage = ({ user }) => {
               onClick={() => handleSelectChat(match)}
               className={`flex items-center p-4 cursor-pointer hover:bg-gray-100 ${selectedChat?.id === match.id ? 'bg-pink-50' : ''}`}
             >
-              <img src={match.images[0]?.imageUrl} alt={match.firstName} className="w-14 h-14 rounded-full object-cover" />
+              <img src={match.images?.[0]?.imageUrl} alt={match.firstName} className="w-14 h-14 rounded-full object-cover" />
               <div className="ml-4">
                 <p className="font-semibold">{match.firstName}</p>
                 <p className="text-sm text-gray-500">Start chatting!</p>
@@ -74,7 +74,7 @@ const ChatsPage = ({ user }) => {
         {selectedChat ? (
           <>
             <div className="flex items-center p-4 border-b">
-              <img src={selectedChat.images[0]?.imageUrl} alt={selectedChat.firstName} className="w-12 h-12 rounded-full object-cover" />
+              <img src={selectedChat.images?.[0]?.imageUrl} alt={selectedChat.firstName} className="w-12 h-12 rounded-full object-cover" />
               <p className="ml-4 font-bold text-lg">{selectedChat.firstName}</p>
             </div>
             <div className="flex-1 p-6 overflow-y-auto bg-gray-50 space-y-4">
@@ -91,7 +91,7 @@ const ChatsPage = ({ user }) => {
                 <input
                   type="text"
                   value={newMessage}
-                  onChange={(e) => setNewMessage(e.g.target.value)}
+                  onChange={(e) => setNewMessage(e.target.value)}
                   placeholder="Type a message..."
                   className="flex-1 px-4 py-3 bg-gray-100 rounded-full focus:outline-none"
                 />

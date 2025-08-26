@@ -29,7 +29,6 @@ const ProfileLeftPanel = ({ userProfile }) => {
     { icon: <Church size={16} />, value: userProfile.userBasics?.religion },
   ];
 
-  // Logic to find the trait with the highest score
   const maxTrait = traits.reduce(
     (max, trait) => (trait.value > max.value ? trait : max),
     traits[0]
@@ -93,4 +92,5 @@ const ProfileLeftPanel = ({ userProfile }) => {
     </motion.section>
   );
 };
+
 export default ProfileLeftPanel;
