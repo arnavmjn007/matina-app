@@ -19,36 +19,42 @@ const ProfileSetupForm = ({ initialCredentials, onFinish }) => {
     const [current, setCurrent] = useState(0);
     const [isModalVisible, setIsModalVisible] = useState(false);
     const [editingItem, setEditingItem] = useState(null);
+    const [isSaving, setIsSaving] = useState(false);
 
-    // 1. Initialize state with the new nested structure from your constants file
     const [formData, setFormData] = useState({
         ...INITIAL_FORM_DATA,
-        ...initialCredentials // Merge email/password from the first step
+        ...initialCredentials
     });
 
-    // This effect now targets the nested personality object
+    // This useEffect hook automatically calculates personality scores
+    // whenever the user changes one of their answers.
     useEffect(() => {
         const newScores = calculatePersonalityTraits(formData.userPersonality);
-        // Avoid infinite loops by checking if scores have changed
-        if (newScores.care !== formData.userPersonality.care) {
+
+        // FIX: Check if scores have actually changed to prevent an infinite loop
+        if (
+            newScores.love !== formData.userPersonality.love ||
+            newScores.care !== formData.userPersonality.care ||
+            newScores.cute !== formData.userPersonality.cute
+        ) {
             setFormData(prev => ({
                 ...prev,
-                userPersonality: { ...prev.userPersonality, ...newScores }
+                userPersonality: {
+                    ...prev.userPersonality,
+                    ...newScores
+                }
             }));
         }
-    }, [formData.userPersonality]);
+    }, [formData.userPersonality]); // FIX: Depend on the whole object as the linter suggests
 
     const handleNext = () => setCurrent(current + 1);
     const handlePrev = () => setCurrent(current - 1);
-
-    // 2. We no longer need multiple handler functions like handleBasicsChange!
 
     const openEditModal = (item) => {
         setEditingItem(item);
         setIsModalVisible(true);
     };
 
-    // The save handler for the modal now cleanly updates the nested 'userBasics' state
     const handleSaveBasics = (key, value) => {
         setFormData(prev => ({
             ...prev,
@@ -57,26 +63,30 @@ const ProfileSetupForm = ({ initialCredentials, onFinish }) => {
     };
 
     const handleFinish = async () => {
+        setIsSaving(true);
         try {
             const { photos, ...userPayload } = formData;
             const imageFile = photos[0]?.originFileObj;
 
             if (!imageFile) {
-                return message.error("Please upload at least one photo.");
+                message.error("Please upload at least one photo.");
+                setIsSaving(false);
+                return;
             }
 
+            // The userPayload now contains the automatically calculated personality scores
             await createUser(userPayload, imageFile);
-            message.success('Registration Complete!');
-            onFinish(); // Use the callback prop to navigate
+            message.success('Registration Complete! Please log in.');
+            onFinish();
         } catch (error) {
-            console.error("Registration Error:", error);
-            message.error(error.response?.data?.message || 'Registration failed. Please try again.');
+            const errorMessage = error.response?.data || 'Registration failed. Please try again.';
+            message.error(errorMessage);
+        } finally {
+            setIsSaving(false);
         }
     };
 
-    // 3. Render steps consistently with a switch statement for better readability
     const renderCurrentStep = () => {
-        // All components receive the same props for consistency
         const props = { data: formData, setFormData };
         switch (current) {
             case 0: return <NameStep {...props} />;
@@ -98,12 +108,13 @@ const ProfileSetupForm = ({ initialCredentials, onFinish }) => {
                 <Steps direction="vertical" current={current} items={STEPS} />
             </div>
             <div className="w-full md:w-2/3 p-8 md:p-12 flex flex-col justify-between">
+                {/* FIX: Changed renderCurrentPage to renderCurrentStep */}
                 <div>{renderCurrentStep()}</div>
                 <div className="mt-8 flex justify-between">
                     {current > 0 && <Button size="large" onClick={handlePrev}>Back</Button>}
                     {current < STEPS.length - 1
                         ? <Button type="primary" size="large" onClick={handleNext} className="bg-pink-500">Next</Button>
-                        : <Button type="primary" size="large" className="bg-green-500" onClick={handleFinish}>Finish</Button>
+                        : <Button type="primary" size="large" className="bg-green-500" onClick={handleFinish} loading={isSaving}>Finish</Button>
                     }
                 </div>
             </div>
@@ -116,5 +127,4 @@ const ProfileSetupForm = ({ initialCredentials, onFinish }) => {
         </div>
     );
 };
-
 export default ProfileSetupForm;
