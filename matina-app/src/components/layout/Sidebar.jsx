@@ -60,7 +60,7 @@ const Sidebar = ({ navigateTo, currentPage, activeUser }) => {
 
     return (
         <>
-            <aside className="w-64 flex-shrink-0 bg-gradient-to-b from-[#7b2d26] via-[#b23a48] to-[#e07a5f] text-white p-6 flex flex-col justify-between rounded-r-3xl h-full shadow-xl">
+            <aside className="w-64 hidden md:flex flex-shrink-0 bg-gradient-to-b from-[#7b2d26] via-[#b23a48] to-[#e07a5f] text-white p-6 flex flex-col justify-between rounded-r-3xl h-full shadow-xl">
                 <div>
                     <div className="flex items-center space-x-3 mb-8">
                         <img src="/images/hearts.png" alt="Matina Logo" className="w-8 h-8" />
