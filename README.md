@@ -26,4 +26,4 @@ Online dating shouldn’t feel awkward or unsafe. Matina’s mission is to make 
 | Cloud | AWS / Render / Firebase |
 | Version Control | Git + GitHub |
 
-Live Preview: matina-app.vercel.app
+Live Preview: https://matina-app.vercel.app
