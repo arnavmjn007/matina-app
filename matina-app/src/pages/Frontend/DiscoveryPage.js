@@ -33,10 +33,9 @@ const DiscoveryPage = ({ user, requireAuth }) => {
   }, [user]);
 
   const handleAction = async (actionType) => {
-    // ✅ Guest cannot swipe
     if (!user) {
       message.info("Login or register to like/dislike 💘");
-      if (requireAuth) requireAuth("login");
+      requireAuth?.("login");
       return;
     }
 
