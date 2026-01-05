@@ -42,23 +42,23 @@ const ProfileLeftPanel = ({ userProfile }) => {
       animate={{ x: 0 }}
       exit={{ x: '-150%' }}
       transition={{ duration: 0.5, ease: "easeInOut" }}
-      className="p-6 rounded-2xl shadow-lg bg-white h-full flex flex-col justify-between"
+      className="rounded-2xl shadow-lg bg-white h-full min-h-0 flex flex-col p-5 sm:p=6"
     >
-      <div>
-        <h2 className="text-4xl font-extrabold mb-2">
+      <div className='flex-1 min-h-0 overflow-y-auto pr-1'>
+        <h2 className="text-3xl sm:text-4xl font-extrabold mb-1 leading-tight">
           {userProfile.firstName} <span className="text-green-500">{userProfile.lastName}</span>
         </h2>
-        <p className="text-2xl font-semibold text-gray-600 mb-4">
+        <p className="text-xl sm:text-2xl font-semibold text-gray-600 mb-3">
           {getAge(userProfile.userProfile?.birthday)} y
         </p>
-        <p className="text-gray-500 text-lg">{userProfile.userProfile?.bio}</p>
+        <p className="text-gray-500 text-base sm:text-lg leading-relaxed">{userProfile.userProfile?.bio}</p>
 
         <hr className="my-4" />
 
-        <div className="flex flex-wrap gap-2 mb-6">
+        <div className="flex flex-wrap gap-2 mb-4">
           {basics.map((item, index) => (
             item.value && (
-              <div key={index} className="bg-gray-100 text-gray-700 text-sm font-medium px-3 py-2 rounded-full flex items-center">
+              <div key={index} className="bg-gray-100 text-gray-700 text-xs sm:text-sm font-medium px-3 py-2 rounded-full flex items-center">
                 {item.icon}
                 <span className="ml-2">{item.value}</span>
               </div>
@@ -66,16 +66,16 @@ const ProfileLeftPanel = ({ userProfile }) => {
           ))}
         </div>
 
-        <div className="space-y-4">
+        <div className="space-y-3 pb-2">
           {traits.map(trait => (
-            <div key={trait.name} className="flex items-center">
-              <span className="font-semibold w-16 text-lg">{trait.name}</span>
-              <div className="flex-1 bg-gray-200 rounded-full h-8 relative">
+            <div key={trait.name} className="flex items-center gap-3">
+              <span className="font-semibold w-14 sm:w-16 text-base sm:text-lg">{trait.name}</span>
+              <div className="flex-1 bg-gray-200 rounded-full h-7 sm:h-8 relative overflow-hidden">
                 <div
                   className={`${trait.color} h-8 rounded-full flex items-center justify-end pr-3`}
                   style={{ width: `${trait.value}%` }}
                 >
-                  <span className="text-md font-bold text-white">
+                  <span className="text-sm sm:text-md font-bold text-white">
                     {trait.value}%
                   </span>
                 </div>
@@ -85,7 +85,7 @@ const ProfileLeftPanel = ({ userProfile }) => {
         </div>
       </div>
 
-      <div className="flex items-center text-blue-800 bg-blue-100 p-3 rounded-xl text-sm mt-6">
+      <div className="mt-4 flex items-center text-blue-800 bg-blue-100 p-3 rounded-xl text-sm">
         <Info className="w-5 h-5 mr-2 flex-shrink-0" />
         <span>{infoMessage}</span>
       </div>

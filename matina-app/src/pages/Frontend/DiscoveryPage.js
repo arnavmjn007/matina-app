@@ -68,20 +68,20 @@ const DiscoveryPage = ({ user }) => {
     };
 
     return (
-        <div className="h-full flex flex-col overflow-hidden">
+        <div className="h-full">
             <AnimatePresence initial={false} custom={{ direction }}>
                 <motion.div
                     key={currentUser.id}
-                    className="grid grid-cols-1 lg:grid-cols-3 gap-8 w-full h-full items-start"
+                    className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8 w-full items-stretch"
                     custom={{ direction }}
                     variants={variants}
                     initial="enter"
                     animate="center"
                     exit="exit"
                 >
-                    <div className="lg:col-span-1"><ProfileLeftPanel userProfile={currentUser} /></div>
-                    <div className="lg:col-span-1"><ProfileImageActions userProfile={currentUser} handleAction={handleAction} /></div>
-                    <div className="lg:col-span-1"><ProfileRightPanel userProfile={currentUser} /></div>
+                    <div className="h-full"><ProfileLeftPanel userProfile={currentUser} /></div>
+                    <div className="h-full"><ProfileImageActions userProfile={currentUser} handleAction={handleAction} /></div>
+                    <div className="h-full"><ProfileRightPanel userProfile={currentUser} /></div>
                 </motion.div>
             </AnimatePresence>
         </div>
