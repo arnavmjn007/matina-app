@@ -84,12 +84,13 @@ public class UserService {
     }
 
     public List<User> getDiscoveryUsersForGuests() {
-        // simple: return first 20 users (filter null profile etc.)
         return userRepository.findAll().stream()
                 .filter(u -> u.getUserProfile() != null)
-                .limit(20)
+                .filter(u -> u.getImages() != null && !u.getImages().isEmpty())
+                .limit(30)
                 .toList();
     }
+
 
 
     public List<User> getLikedUsers(Long currentUserId) {
