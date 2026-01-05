@@ -1,26 +1,25 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { App as AntApp } from "antd";
+
 import Login from "./pages/Backend/Login";
 import Register from "./pages/Backend/Register";
 import Dashboard from "./pages/Backend/Dashboard";
 
 function App() {
   const [user, setUser] = useState(null);
-  const [authView, setAuthView] = useState("dashboard");
+  const [authView, setAuthView] = useState("login");
+  const [showAuth, setShowAuth] = useState(false); // 👈 guest landing by default
 
   useEffect(() => {
     const storedUser = localStorage.getItem("user");
-    const token = localStorage.getItem("token");
-    if (storedUser && token) {
-      setUser(JSON.parse(storedUser));
-    }
+    if (storedUser) setUser(JSON.parse(storedUser));
   }, []);
 
   const handleLogout = useCallback(() => {
     localStorage.removeItem("user");
     localStorage.removeItem("token");
     setUser(null);
-    setAuthView("login");
+    setShowAuth(false); // back to guest landing
   }, []);
 
   const handleUserUpdate = (updatedUser) => {
@@ -32,43 +31,42 @@ function App() {
 
   const handleLogin = (loggedInUser) => {
     setUser(loggedInUser);
-    localStorage.setItem("user", JSON.stringify(loggedInUser));
+    setShowAuth(false); // go back into app
+  };
+
+  const requireAuth = () => {
+    setShowAuth(true);
     setAuthView("login");
   };
 
   const renderContent = () => {
-    if (authView === "dashboard") {
-      return (
-        <Dashboard
-          user={user}
-          onUserUpdate={handleUserUpdate}
-          onLogout={handleLogout}
-          requireAuth={(targetView = "login") => setAuthView(targetView)}
-        />
-      );
-    }
-
-    switch (authView) {
-      case "register":
+    // If auth modal/page is open, show it
+    if (showAuth && !user) {
+      if (authView === "register") {
         return (
           <Register
             navigateTo={() => setAuthView("login")}
             onRegistrationComplete={() => setAuthView("login")}
           />
         );
-
-      case "login":
-      default:
-        return (
-          <Login
-            onLogin={(u) => {
-              handleLogin(u);
-              setAuthView("dashboard"); 
-            }}
-            navigateTo={() => setAuthView("register")}
-          />
-        );
+      }
+      return (
+        <Login
+          onLogin={handleLogin}
+          navigateTo={() => setAuthView("register")}
+        />
+      );
     }
+
+    // Otherwise always show Dashboard (guest or logged-in)
+    return (
+      <Dashboard
+        user={user}
+        onUserUpdate={handleUserUpdate}
+        onLogout={handleLogout}
+        onRequireAuth={requireAuth}
+      />
+    );
   };
 
   return <AntApp>{renderContent()}</AntApp>;

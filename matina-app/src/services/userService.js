@@ -22,10 +22,16 @@ export const loginUser = async (email, password) => {
 };
 
 export const getDiscoveryUsers = async (userId) => {
-  const url = userId ? `/users/discover/${userId}` : `/users/discover`;
-  const response = await api.get(url);
+   const response = await api.get(`/users/discover/${userId}`);
   return response.data;
 };
+
+export const getGuestDiscoveryUsers = async () => {
+  // guest endpoint: GET /api/users/discover
+  const response = await api.get(`/users/discover`);
+  return response.data;
+};
+
 
 export const getUser = async (userId) => {
   const response = await api.get(`/users/${userId}`);

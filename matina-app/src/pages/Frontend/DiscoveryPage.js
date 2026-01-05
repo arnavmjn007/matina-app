@@ -1,41 +1,58 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { message } from "antd";
-import { getDiscoveryUsers, recordSwipe } from "../../services/userService";
+
+import {
+  getDiscoveryUsers,
+  getGuestDiscoveryUsers,
+  recordSwipe,
+} from "../../services/userService";
+
 import ProfileLeftPanel from "../../components/profile/ProfileLeftPanel";
 import ProfileImageActions from "../../components/profile/ProfileImageActions";
 import ProfileRightPanel from "../../components/profile/ProfileRightPanel";
 
-const DiscoveryPage = ({ user, requireAuth }) => {
+const DiscoveryPage = ({ user, onRequireAuth }) => {
+  const isGuest = !user;
+
   const [users, setUsers] = useState([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [direction, setDirection] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
+    let alive = true;
+
     const fetchUsers = async () => {
       setIsLoading(true);
       try {
-        // ✅ logged in -> personalized endpoint
-        // ✅ guest -> general endpoint (you’ll add backend route)
-        const usersData = await getDiscoveryUsers(user?.id);
+        const usersData = user
+          ? await getDiscoveryUsers(user.id)
+          : await getGuestDiscoveryUsers();
+
+        if (!alive) return;
         setUsers(usersData || []);
         setCurrentIndex(0);
-      } catch (error) {
-        console.error("Discovery fetch failed:", error);
+      } catch (e) {
+        if (!alive) return;
         message.error("Could not load profiles.");
       } finally {
+        if (!alive) return;
         setIsLoading(false);
       }
     };
 
     fetchUsers();
+    return () => {
+      alive = false;
+    };
   }, [user]);
 
   const handleAction = async (actionType) => {
-    if (!user) {
-      message.info("Login or register to like/dislike 💘");
-      requireAuth?.("login");
+    // Guest cannot swipe
+    if (isGuest) {
+      message.info("Login to like/dislike and chat.");
+      onRequireAuth?.();
       return;
     }
 
@@ -51,7 +68,6 @@ const DiscoveryPage = ({ user, requireAuth }) => {
         message.success(`It's a Match with ${swipedUser.firstName}!`, 3);
       }
     } catch (error) {
-      console.error("Swipe failed:", error);
       message.error("Something went wrong.");
     }
 
@@ -68,15 +84,7 @@ const DiscoveryPage = ({ user, requireAuth }) => {
     );
   }
 
-  if (!users.length) {
-    return (
-      <div className="text-center font-semibold text-gray-500">
-        No profiles to show right now.
-      </div>
-    );
-  }
-
-  if (currentIndex >= users.length) {
+  if (users.length === 0 || currentIndex >= users.length) {
     return (
       <div className="text-center font-semibold text-gray-500">
         No more profiles to show. Check back later!
@@ -87,25 +95,25 @@ const DiscoveryPage = ({ user, requireAuth }) => {
   const currentUser = users[currentIndex];
 
   const variants = {
-    enter: { y: 300, opacity: 0, scale: 0.95 },
+    enter: { y: 300, opacity: 0, scale: 0.9 },
     center: {
       zIndex: 1,
       y: 0,
       opacity: 1,
       scale: 1,
-      transition: { duration: 0.35 },
+      transition: { duration: 0.4 },
     },
     exit: (custom) => ({
       zIndex: 0,
       x: custom.direction < 0 ? -500 : 500,
       opacity: 0,
-      scale: 0.9,
-      transition: { duration: 0.25 },
+      scale: 0.8,
+      transition: { duration: 0.3 },
     }),
   };
 
   return (
-    <div className="h-full min-h-0">
+    <div className="h-full">
       <AnimatePresence initial={false} custom={{ direction }}>
         <motion.div
           key={currentUser.id}
@@ -116,20 +124,25 @@ const DiscoveryPage = ({ user, requireAuth }) => {
           animate="center"
           exit="exit"
         >
-          <div className="h-full min-h-0">
+          <div className="h-full">
             <ProfileLeftPanel userProfile={currentUser} />
           </div>
 
-          <div className="h-full min-h-0">
+          <div className="h-full">
             <ProfileImageActions
               userProfile={currentUser}
               handleAction={handleAction}
-              isGuest={!user} // optional if you want to change UI
+              isGuest={isGuest}
+              onRequireAuth={onRequireAuth}
             />
           </div>
 
-          <div className="h-full min-h-0">
-            <ProfileRightPanel userProfile={currentUser} />
+          <div className="h-full">
+            <ProfileRightPanel
+              userProfile={currentUser}
+              isGuest={isGuest}
+              onRequireAuth={onRequireAuth}
+            />
           </div>
         </motion.div>
       </AnimatePresence>
