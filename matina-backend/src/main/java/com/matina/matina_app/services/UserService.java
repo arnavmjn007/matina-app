@@ -83,6 +83,15 @@ public class UserService {
                 .collect(Collectors.toList());
     }
 
+    public List<User> getDiscoveryUsersForGuests() {
+        // simple: return first 20 users (filter null profile etc.)
+        return userRepository.findAll().stream()
+                .filter(u -> u.getUserProfile() != null)
+                .limit(20)
+                .toList();
+    }
+
+
     public List<User> getLikedUsers(Long currentUserId) {
         List<Long> likerIds = interactionRepository.findBySwipedIdAndAction(currentUserId, "like").stream().map(Interaction::getSwiperId).collect(Collectors.toList());
         List<Long> swipedOnIds = interactionRepository.findBySwiperId(currentUserId).stream().map(Interaction::getSwipedId).collect(Collectors.toList());

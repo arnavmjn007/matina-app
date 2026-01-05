@@ -47,6 +47,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.POST, "/api/users/register", "/api/users/login").permitAll()
 
                         // ✅ Ghost mode reads
+                        .requestMatchers(HttpMethod.GET, "/api/users/discover").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/users/discovery/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/users/profiles/**").permitAll()
 

@@ -69,6 +69,16 @@ public class UserController {
         return ResponseEntity.ok(userService.getDiscoveryUsers(userId));
     }
 
+    // --- GHOST MODE DISCOVERY (NO LOGIN REQUIRED) ---
+    @GetMapping("/discover")
+    public ResponseEntity<List<User>> getDiscoveryForGuests() {
+        // simplest: return everyone (you can filter later)
+        // better: limit size so you don't return 10k users
+        List<User> users = userService.getDiscoveryUsersForGuests();
+        return ResponseEntity.ok(users);
+    }
+
+
     @GetMapping("/liked/{userId}")
     public ResponseEntity<List<User>> getLikedUsers(@PathVariable Long userId) {
         return ResponseEntity.ok(userService.getLikedUsers(userId));
