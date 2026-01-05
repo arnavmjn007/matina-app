@@ -9,12 +9,11 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
-// --- 1. Add these new imports ---
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
-import java.util.Arrays;
+import java.util.List;
 
 import static org.springframework.security.config.Customizer.withDefaults;
 
@@ -33,40 +32,67 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-                // --- 2. Enable CORS using the bean we will define below ---
                 .cors(withDefaults())
                 .csrf(csrf -> csrf.disable())
-                .authorizeHttpRequests(auth -> auth
-                        // Allow the WebSocket endpoint to be accessed for the handshake
-                        .requestMatchers("/ws/**").permitAll()
-                        .requestMatchers("/api/users/register", "/api/users/login").permitAll()
-                        .requestMatchers(HttpMethod.PUT, "/api/users/**").authenticated()
-                        .requestMatchers(HttpMethod.DELETE, "/api/users/**").authenticated()
-                        .anyRequest().authenticated()
-                )
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authenticationProvider(authenticationProvider)
-                .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
+                .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class)
+                .authorizeHttpRequests(auth -> auth
+
+                        // ✅ MUST: allow preflight or browser blocks request
+                        .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+
+                        // 1) PUBLIC
+                        .requestMatchers("/ws/**").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/users/register", "/api/users/login").permitAll()
+
+                        // ✅ Ghost mode reads
+                        .requestMatchers(HttpMethod.GET, "/api/users/discovery").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/users/profiles/**").permitAll()
+
+                        // 2) PROTECTED
+                        .requestMatchers(HttpMethod.PUT, "/api/users/**").authenticated()
+                        .requestMatchers(HttpMethod.DELETE, "/api/users/**").authenticated()
+                        .requestMatchers("/api/interactions/**").authenticated()
+                        .requestMatchers("/api/chat/**").authenticated()
+
+                        // 3) EVERYTHING ELSE
+                        .anyRequest().authenticated()
+                );
 
         return http.build();
     }
 
-    // --- 3. Add this new bean to define the global CORS policy ---
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
-        CorsConfiguration configuration = new CorsConfiguration();
-        // Allow your React app's origin
-        configuration.setAllowedOrigins(Arrays.asList("http://localhost:3000"));
-        // Allow all standard HTTP methods
-        configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
-        // Allow all headers
-        configuration.setAllowedHeaders(Arrays.asList("*"));
-        // Allow credentials (important for WebSocket)
-        configuration.setAllowCredentials(true);
+        CorsConfiguration config = new CorsConfiguration();
+
+        // ✅ Your frontend origin
+        config.setAllowedOrigins(List.of("http://localhost:3000"));
+
+        // ✅ Preflight + normal methods
+        config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+
+        // ✅ Allow headers commonly used (JWT + multipart)
+        config.setAllowedHeaders(List.of(
+                "Authorization",
+                "Content-Type",
+                "Accept",
+                "Origin",
+                "X-Requested-With"
+        ));
+
+        // Optional: if you ever return token in header & want FE to read it
+        config.setExposedHeaders(List.of("Authorization"));
+
+        // JWT in headers doesn't need cookies, but keeping true won't hurt unless you do wildcard origins
+        config.setAllowCredentials(true);
+
+        // cache preflight
+        config.setMaxAge(3600L);
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-        // Apply this configuration to all paths
-        source.registerCorsConfiguration("/**", configuration);
+        source.registerCorsConfiguration("/**", config);
         return source;
     }
 }
